@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.y</groupId>
-    <artifactId>notepad</artifactId>
+    <artifactId>XFrameNotepad</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>notepad</name>
     <description>记事本应用程序</description>
