@@ -1,9 +1,34 @@
 package org.y.notepad.util;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@Slf4j
 public class Constants {
+    public static final String SESSION_USER = StringUtil.genGUID();
     // 内部通信令牌
     public static String TOKEN;
 
     // 模块在XFrame中的唯一标记
     public static int MODULE_ID;
+
+    /**
+     * 校验Token
+     *
+     * @param mid   模块ID
+     * @param token 启动Token
+     * @return true-校验成功, false-校验失败
+     */
+    public static boolean checkToken(@PathVariable int mid, @PathVariable String token) {
+        if (Constants.MODULE_ID != mid) {
+            log.info("MODULE_ID不匹配, 期望值[" + Constants.MODULE_ID + "]实际值[" + mid + "]");
+            return false;
+        }
+        if (!StringUtils.equals(Constants.TOKEN, token)) {
+            log.info("TOKEN不匹配, 期望值[" + Constants.TOKEN + "]实际值[" + token + "]");
+            return false;
+        }
+        return true;
+    }
 }

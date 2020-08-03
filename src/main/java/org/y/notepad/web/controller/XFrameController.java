@@ -10,7 +10,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.WebUtils;
 import org.y.notepad.util.Constants;
+import org.y.notepad.web.util.WebUtil;
 
 @Slf4j
 @RestController
@@ -53,16 +55,20 @@ public class XFrameController {
      */
     @RequestMapping("/logDir/{mid}/{token}")
     public String logDir(@PathVariable int mid, @PathVariable String token) {
-        if (Constants.MODULE_ID != mid) {
-            log.info("MODULE_ID不匹配, 期望值[" + Constants.MODULE_ID + "]实际值[" + mid + "]");
-            return null;
-        }
-        if (!StringUtils.equals(Constants.TOKEN, token)) {
-            log.info("TOKEN不匹配, 期望值[" + Constants.TOKEN + "]实际值[" + token + "]");
-            return null;
-        }
-
-        return logFileDir;
+        if (Constants.checkToken(mid, token))
+            return logFileDir;
+        return null;
     }
 
+    /**
+     * 进入首页
+     *
+     * @param mid   模块ID
+     * @param token 启动Token
+     */
+    @RequestMapping("/index/{mid}/{token}")
+    public void index(@PathVariable int mid, @PathVariable String token) {
+        if (Constants.checkToken(mid, token))
+            WebUtil.forward("/dashboard.html");
+    }
 }

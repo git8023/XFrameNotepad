@@ -11,6 +11,6 @@ public class CloseListener implements ApplicationListener<ContextClosedEvent> {
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
-        log.info("程序停止, 关闭所有启动的模块");
+        log.info("程序停止");
     }
 }
