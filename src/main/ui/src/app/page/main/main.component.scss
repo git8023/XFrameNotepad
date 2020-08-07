@@ -68,12 +68,53 @@
     }
   }
 
-  .dirs {
-    min-width: 200px;
+  .dirs-box {
+    width: 20rem;
     background: #eee;
+
+    .search-box {
+      padding: .5rem;
+
+      .up-level {
+        padding: .5rem;
+        cursor: pointer;
+        font-size: 1.5rem;
+      }
+    }
+
+    .dirs {
+
+      .path {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        white-space: nowrap;
+
+        &:hover {
+          color: #5576BD;
+        }
+
+        .icon {
+        }
+
+        .text {
+          padding: 0 .5rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .date {
+          text-align: right;
+          width: 4rem;
+        }
+
+      }
+    }
   }
 
   .content {
+    .md-editor {
+      margin-bottom: 0;
+    }
   }
 
 }

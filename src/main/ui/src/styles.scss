@@ -101,8 +101,59 @@ body {
   width: 100%;
 }
 
+.full-height {
+  height: 100%;
+}
+
 .children-full-height {
   > * {
     height: 100%;
   }
+}
+
+
+/*滚动条整体部分，可以设置宽度啥的*/
+.def-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.def-scroll::-webkit-scrollbar-button {
+}
+
+/*滚动条两端的按钮*/
+.def-scroll::-webkit-scrollbar-track {
+}
+
+/*外层轨道*/
+.def-scroll::-webkit-scrollbar-track-piece {
+}
+
+/*内层滚动槽*/
+.def-scroll::-webkit-scrollbar-corner {
+}
+
+/*边角*/
+.def-scroll::-webkit-resizer {
+}
+
+/*定义右下角拖动块的样式*/
+/*滚动的滑块*/
+.def-scroll::-webkit-scrollbar-thumb {
+  width: 3px;
+  background: #ACB5BF;
+  /*background: transparent;*/
+  /*-webkit-border-radius: 5px;*/
+  /*-moz-border-radius: 5px;*/
+  /*border-radius: 5px;*/
+}
+
+.def-scroll {
+  /*scrollbar-arrow-color: #59616B; !*三角箭头的颜色*!*/
+  /*scrollbar-face-color: #59616B; !*立体滚动条的颜色（包括箭头部分的背景色）*!*/
+  /*scrollbar-3dlight-color: #59616B; !*立体滚动条亮边的颜色*!*/
+  /*scrollbar-highlight-color: #59616B; !*滚动条的高亮颜色（左阴影？）*!*/
+  /*scrollbar-shadow-color: #59616B; !*立体滚动条阴影的颜色*!*/
+  /*scrollbar-darkshadow-color: #59616B; !*立体滚动条外阴影的颜色*!*/
+  /*scrollbar-track-color: #59616B; !*立体滚动条背景颜色*!*/
+  /*scrollbar-base-color: #59616B; !*滚动条的基色*!*/
 }

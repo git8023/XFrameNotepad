@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {EditorConfig} from "../../cfg/editor-config";
+
+declare var editormd: any;
 
 @Component({
   selector: 'app-main',
@@ -7,9 +10,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MainComponent implements OnInit {
 
-  constructor() { }
+  @ViewChild('content', {static: true, read: ElementRef}) content: ElementRef;
 
-  ngOnInit() {
+  conf = new EditorConfig();
+
+  constructor() {
   }
 
+  ngOnInit(): void {
+    this.conf.markdown = "测试代码 <b>粗体</b>";
+    editormd('detailmarkdown', this.conf);
+  }
 }
