@@ -69,6 +69,6 @@ public class XFrameController {
     @RequestMapping("/index/{mid}/{token}")
     public void index(@PathVariable int mid, @PathVariable String token) {
         if (Constants.checkToken(mid, token))
-            WebUtil.forward("/dashboard.html");
+            WebUtil.forward("/index.html");
     }
 }
