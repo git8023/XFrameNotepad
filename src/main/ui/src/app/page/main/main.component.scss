@@ -88,9 +88,15 @@
         padding: 0.5rem 1rem;
         cursor: pointer;
         white-space: nowrap;
+        border-bottom: 1px solid #dadada;
 
-        &:hover {
+        &:last-child {
+
+        }
+
+        &:hover, &.opened {
           color: #5576BD;
+          background-color: #ddd;
         }
 
         .icon {
@@ -104,7 +110,7 @@
 
         .date {
           text-align: right;
-          width: 4rem;
+          width: 5rem;
         }
 
       }

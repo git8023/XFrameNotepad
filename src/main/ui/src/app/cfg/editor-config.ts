@@ -25,6 +25,8 @@ export class EditorConfig {
   public imageUploadURL = '';
   public htmlDecode = 'style,script,iframe';  // you can filter tags decode
   public editorFunction = '';//定义调用的方法
+  public onchange?: () => void;
+
   constructor() {
   }
 }

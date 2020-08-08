@@ -11,14 +11,24 @@ declare var editormd: any;
 export class MainComponent implements OnInit {
 
   @ViewChild('content', {static: true, read: ElementRef}) content: ElementRef;
-
+  // markdown编辑器配置
   conf = new EditorConfig();
+  // markdown编辑器实例
+  editor: any;
 
   constructor() {
   }
 
   ngOnInit(): void {
     this.conf.markdown = "测试代码 <b>粗体</b>";
-    editormd('detailmarkdown', this.conf);
+    this.conf.onchange = () => {
+      console.log(this.editor.getMarkdown());
+    };
+    this.editor = editormd('detailmarkdown', this.conf);
+    console.log(this.editor);
+    // 获取 md 内容
+    // editor.getMarkdown()
+    // 解析 md 内容
+    // editormd.markdownToHTML('detailmarkdown', this.conf);
   }
 }

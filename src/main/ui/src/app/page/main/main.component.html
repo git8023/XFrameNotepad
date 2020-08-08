@@ -33,6 +33,8 @@
 
   <!--中间虚拟文件夹/文件-->
   <div class="dirs-box flex-v full-height">
+
+    <!--搜索-->
     <div class="flex-h search-box">
       <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"
          nz-tooltip nzTooltipTitle="返回上一层" nzTooltipPlacement="right"></i>
@@ -40,6 +42,7 @@
         <input type="text" nz-input placeholder="输入搜索关键字"/>
       </nz-input-group>
     </div>
+
     <div class="dirs flex-1 overflow-auto def-scroll">
       <div class="path flex-h flex-center">
         <i nz-icon nzType="folder" nzTheme="outline" class="icon"></i>
@@ -47,6 +50,11 @@
         <span class="date">16</span>
       </div>
 
+      <div class="path flex-h flex-center opened">
+        <i nz-icon nzType="file-text" nzTheme="outline" class="icon"></i>
+        <span class="text flex-1">帮助文档</span>
+        <span class="date">2020-08-07</span>
+      </div>
       <div class="path flex-h flex-center">
         <i nz-icon nzType="file-text" nzTheme="outline" class="icon"></i>
         <span class="text flex-1">帮助文档</span>
