@@ -65,9 +65,22 @@
   </div>
 
   <!--右侧内容-->
-  <div class="content flex-1 full-height overflow-auto" #content>
-    <div class="md-editor" id="detailmarkdown">
-      <textarea></textarea>
+  <div class="content flex-1 flex-h ">
+    <div class="flex-1 full-height overflow-auto" #content>
+      <div class="md-editor" id="detailmarkdown">
+        <textarea></textarea>
+      </div>
+    </div>
+
+    <div class="operation flex-v">
+      <i nz-icon nzType="profile" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="模式切换" nzTooltipPlacement="left"></i>
+
+      <i nz-icon nzType="share-alt" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>
+
+      <i nz-icon nzType="logout" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="left" (click)="exitApp()"></i>
     </div>
   </div>
 

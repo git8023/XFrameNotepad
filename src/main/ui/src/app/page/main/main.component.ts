@@ -31,4 +31,10 @@ export class MainComponent implements OnInit {
     // 解析 md 内容
     // editormd.markdownToHTML('detailmarkdown', this.conf);
   }
+
+  // 退出应用
+  exitApp() {
+    top.postMessage('exit', '*');
+  }
+
 }
