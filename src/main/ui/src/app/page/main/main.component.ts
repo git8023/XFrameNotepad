@@ -24,7 +24,7 @@ export class MainComponent implements OnInit {
     this.conf.onchange = () => {
       console.log(this.editor.getMarkdown());
     };
-    this.editor = editormd('detailmarkdown', this.conf);
+    this.editor = editormd('mdEditor', this.conf);
     console.log(this.editor);
     // 获取 md 内容
     // editor.getMarkdown()
