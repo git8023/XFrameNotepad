@@ -34,7 +34,7 @@ export class MainComponent implements OnInit {
 
   // 退出应用
   exitApp() {
-    top.postMessage('exit', '*');
+    top.postMessage(JSON.stringify('WIN_EXIT'), '*');
   }
 
 }

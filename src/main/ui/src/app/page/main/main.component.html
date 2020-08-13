@@ -13,7 +13,7 @@
     <i nz-icon nzType="plus-circle" nzTheme="outline" class="add"
        nz-tooltip nzTooltipTitle="添加" nzTooltipPlacement="right"></i>
 
-    <div class="menus flex-v flex-center">
+    <div class="menus flex-v flex-center flex-1 overflow-auto def-scroll">
       <i nz-icon nzType="snippets" nzTheme="outline" class="active"
          nz-tooltip nzTooltipTitle="最近文档" nzTooltipPlacement="right"></i>
 
@@ -28,6 +28,9 @@
 
       <i nz-icon nzType="delete" nzTheme="outline"
          nz-tooltip nzTooltipTitle="回收站" nzTooltipPlacement="right"></i>
+
+      <i nz-icon nzType="logout" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="left" (click)="exitApp()"></i>
     </div>
   </div>
 
@@ -78,9 +81,6 @@
 
       <i nz-icon nzType="share-alt" nzTheme="outline"
          nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>
-
-      <i nz-icon nzType="logout" nzTheme="outline"
-         nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="left" (click)="exitApp()"></i>
     </div>
   </div>
 

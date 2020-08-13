@@ -111,7 +111,6 @@ body {
   }
 }
 
-
 /*滚动条整体部分，可以设置宽度啥的*/
 .def-scroll::-webkit-scrollbar {
   width: 3px;
@@ -156,4 +155,9 @@ body {
   /*scrollbar-darkshadow-color: #59616B; !*立体滚动条外阴影的颜色*!*/
   /*scrollbar-track-color: #59616B; !*立体滚动条背景颜色*!*/
   /*scrollbar-base-color: #59616B; !*滚动条的基色*!*/
+}
+
+.md-editor {
+  width: 100%;
+  height: 100%;
 }
