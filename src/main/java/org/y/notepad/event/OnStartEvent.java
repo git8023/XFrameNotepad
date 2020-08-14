@@ -29,11 +29,11 @@ public class OnStartEvent implements ApplicationRunner {
         if (1 == mid.size())
             Constants.TOKEN = token.get(0);
 
-        log.info("框架 MODULE_ID:" + Constants.MODULE_ID );
+        log.info("框架 MODULE_ID:" + Constants.MODULE_ID);
         log.info("框架 TOKEN:" + Constants.TOKEN);
 
         RestTemplate rest = new RestTemplate();
-        String url = "http://localhost/module/logDir/" + Constants.MODULE_ID
+        String url = Constants.URL.MODULE + "/logDir/" + Constants.MODULE_ID
                 + "/" + Constants.TOKEN + "/" + StringUtil.base64Enc(logFileDir);
 
         log.info("修改LogDir: " + url);

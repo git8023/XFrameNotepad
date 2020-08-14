@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {Router} from "@angular/router";
+import {Storages, urlParam} from './util/utils';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,8 @@ import {Router} from "@angular/router";
 export class AppComponent {
 
   constructor(private router: Router) {
-    router.navigateByUrl('/main').finally();
+    let params = urlParam(location.search);
+    Storages.SESSION.user(+params.user);
+    this.router.navigateByUrl('/main').finally();
   }
-
 }

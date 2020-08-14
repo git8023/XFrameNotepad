@@ -561,15 +561,56 @@ export function handleResult(
 ) {
   return (ret: Result) => {
     if (ret.flag) {
-      if (showSuccess)
-        notify.success('提示', '操作成功');
-      okFn(ret);
+      if (showSuccess) notify.success('提示', '操作成功');
+      if (isFunction(okFn)) okFn(ret);
     } else {
       notify.warning('警告', ret.message);
     }
 
     if (isFunction(final))
       final(ret);
+  };
+}
+
+/**
+ * 处理服务器响应结果, 响应格式为 {flag:boolean, message:string, data:any, errorCode?:any}
+ * @param cfg
+ * @param {NzNotificationService} cfg.notify 通知对象
+ * @param {boolean} [cfg.showSuccess] true-ret.flag为true时提示'操作成功'
+ * @param {function(Result):void} [cfg.onOk] ret.flag为true时的处理函数
+ * @param {function(Result):void} [cfg.onFail] ret.flag为false时的处理函数, 如果不指定默认弹出警告框并提示 ret.message
+ * @param {function(Result):void} [cfg.final] 所有流程处理完成后执行
+ */
+export function handleResult2(cfg: {
+  notify?: NzNotificationService,
+  showSuccess?: boolean,
+  onOk?: (ret) => void,
+  onFail?: (ret) => void,
+  final?: (ret) => void
+}) {
+  return (ret: Result) => {
+
+    // true == reg.flag
+    if (ret.flag) {
+      if (cfg.showSuccess && cfg.notify)
+        cfg.notify.success('提示', '操作成功');
+
+      if (cfg.onOk)
+        cfg.onOk(ret);
+
+    }
+
+    // false == ret.flag
+    else if (cfg.onFail) {
+      cfg.onFail(ret);
+    } else {
+      if (cfg.notify)
+        cfg.notify.warning('警告', ret.message);
+    }
+
+    // 处理完成后
+    if (cfg.final)
+      cfg.final(ret);
   };
 }
 
@@ -628,175 +669,209 @@ export function post<T>(
   return pipes<T>(http.post<T>(url, createHttpParams(param)), ...optFns);
 }
 
+/**
+ * 转换url查询参数
+ * @param {string} search location.search
+ * @returns {{[p: string]: string | string[]}} 参数对象
+ */
+export function urlParam(search: string): { [s: string]: string | string[] } {
+  let index = search.indexOf('?');
+  if (0 !== index) return {};
+
+  let ret = {};
+  search = search.substr(1);
+  search.split('&').forEach(s => {
+    let sp = s.split('=');
+    let key = sp[0];
+    let oldV = ret[key];
+    if (!oldV) {
+      ret[key] = decodeURIComponent(sp[1]);
+      return;
+    }
+
+    if (!isArray(oldV))
+      oldV = [oldV];
+    oldV.push(sp[1]);
+
+    ret[key] = oldV;
+  });
+  return ret;
+}
+
 //</editor-fold>
 
-//////////////////////////////////////////// ognl
-// /**
-//  * OGNL表达式对象工具
-//  */
-// export class Ognls {
-//   /**
-//    * 获取数组值
-//    * @param data {?} 源对象
-//    * @param {string} ognl 属性索引
-//    * @return {Array<any>} 属性值
-//    */
-//   static getArrOgnlVal(data: object, ognl: string): Array<any> | any {
-//     // 获取数组对象
-//     let sIdx = ognl.indexOf("[");
-//     let arrK = ognl.substring(0, sIdx);
-//     let arr = data[arrK];
-//     let idxStr = ognl.substring(sIdx);
-//     let idxReg = /^(\[\d+\])+$/;
-//
-//     if (!idxReg.test(idxStr)) throw "非法下标索引:" + idxStr;
-//
-//     // 获取值[1], [0][2]...
-//     let idxes = idxStr.split("][");
-//
-//     // 一维数组
-//     if (1 === idxes) return arr[parseInt(idxes.replace("[", "").replace("]", ""))];
-//
-//     // 多维数组
-//     let val = arr;
-//     eachA(idxes, function (v) {
-//       if (!isArray(val)) return false;
-//       val = val[parseInt((v + "").replace("[", "").replace("]", ""))]
-//     });
-//     return val;
-//   }
-//
-//   /**
-//    * 获取值
-//    * @param data {?} 源对象
-//    * @param {string} ognl 属性索引
-//    * @return {any} 属性值
-//    */
-//   static getValue(data: object, ognl: string): any {
-//     if (isNullOrUndefined(data)) return null;
-//     if (!isString(ognl)) throw "Invalid parameter: ognl";
-//
-//     let keys = ognl.split(".");
-//     if (1 === keys.length) {
-//       // 非数组
-//       let regex = /\[/;
-//       if (!regex.test(ognl)) return data ? data[ognl.trim()] : data;
-//       else return Ognls.getArrOgnlVal(data, ognl);
-//     }
-//
-//     let idx = ognl.indexOf(".");
-//     let key = ognl.substring(0, idx);
-//     let isArr = /\[\d+\]/.test(key);
-//     let d = isArr ? Ognls.getArrOgnlVal(data, key) : data[key];
-//     let newOgnl = ognl.substring(idx + 1);
-//     return Ognls.getValue(d, newOgnl);
-//   }
-//
-//   /**
-//    * 设置值
-//    * @param v {?} 值
-//    * @param {string} _ognl 属性索引
-//    * @param {object} d 目标对象
-//    * @return {object}
-//    */
-//   static setValue(v: any, _ognl: string, d: object) {
-//     if (!isObject(d)) return;
-//     let ognl = new Ognl(_ognl), tmp;
-//
-//     // 数组
-//     if (ognl.isArray) {
-//       // 第一层数组直接赋值
-//       // 所以 ognl.floors 需要去掉一层
-//       let old = d[ognl.key];
-//       let arr;
-//       let fIndex = ognl.floors.shift();
-//
-//       if (!isArray(old))
-//         arr = d[ognl.key] = [];
-//       else {
-//         arr = old;
-//         let existLen = arr.length;
-//         let offset: number = existLen - fIndex - 1;
-//         // 目标下标超出现有数组长度
-//         // 执行下标补位
-//         if (0 > offset) {
-//           offset = Math.abs(offset);
-//           while (0 < offset--)
-//             arr.push(undefined);
-//         }
-//         arr.splice(fIndex, 1, []);
-//       }
-//
-//       // 第N层(N>1)
-//       let lastIndex = -1;
-//       eachA(ognl.floors, (v, k) => {
-//         lastIndex = k;
-//         arr.splice(v, 1, tmp = []);
-//         arr = tmp;
-//       });
-//
-//       // 设置非数组维度的层级关系
-//       if (ognl.next) {
-//         arr.splice(fIndex, 1, tmp = tmp || {});
-//         Ognls.setValue(v, ognl.nextKey, tmp);
-//       } else {
-//         if (undefined !== lastIndex) arr.splice(lastIndex, 1, v);
-//         else arr[fIndex].push(v);
-//       }
-//     }
-//
-//     // 对象
-//     else {
-//       if (ognl.next) {
-//         Ognls.setValue(v, ognl.nextKey, d[ognl.key] = {});
-//       } else {
-//         if (Array.isArray(d)) {
-//           d.push(tmp = {});
-//           d = tmp;
-//         }
-//         d[ognl.key] = v;
-//       }
-//     }
-//     return d;
-//   }
-// }
-//
-// /**
-//  * 解析ognl表达式为节点单向链表
-//  */
-// class Ognl {
-//   key = "";
-//   nextKey = "";
-//   isArray = false;
-//   floors = [];
-//   next: Ognl;
-//
-//   constructor(k: string) {
-//     let objIndex = k.indexOf(".");
-//     let arrIndex = k.indexOf("[");
-//     let hasMore = (-1 !== objIndex);
-//
-//     if ((-1 !== arrIndex) && ((-1 === objIndex) || (arrIndex < objIndex)))
-//       this.isArray = true;
-//
-//     if (hasMore) {
-//       this.key = k.substring(0, objIndex);
-//       this.nextKey = k.substring(objIndex + 1);
-//       this.next = new Ognl(k.substring(objIndex + 1));
-//     } else {
-//       this.key = k;
-//       this.next = null;
-//     }
-//
-//     if (this.isArray) {
-//       let sp = this.key.split("[");
-//       this.key = sp.shift();
-//       eachA(sp, v => {
-//         this.floors.push(parseInt(v));
-//       });
-//     }
-//   }
-// }
+//<editor-fold desc="ognl">
+/**
+ * OGNL表达式对象工具
+ */
+/**
+ * OGNL表达式对象工具
+ */
+export class Ognls {
+  /**
+   * 获取数组值
+   * @param data {?} 源对象
+   * @param {string} ognl 属性索引
+   * @return {Array<any>} 属性值
+   */
+  public static getArrOgnlVal(data: object, ognl: string): Array<any> | any {
+    // 获取数组对象
+    let sIdx = ognl.indexOf("[");
+    let arrK = ognl.substring(0, sIdx);
+    let arr = data[arrK];
+    let idxStr: string = ognl.substring(sIdx);
+    let idxReg = /^(\[\d+\])+$/;
+
+    if (!idxReg.test(idxStr)) throw "非法下标索引:" + idxStr;
+
+    // 获取值[1], [0][2]...
+    let spArr: Array<string> = idxStr.split("][");
+
+    // 一维数组
+    if (1 === spArr.length) return arr[parseInt(idxStr.replace("[", "").replace("]", ""))];
+
+    // 多维数组
+    let val = arr;
+    eachA(spArr, function (v) {
+      if (!isArray(val)) return false;
+      val = val[parseInt((v + "").replace("[", "").replace("]", ""))]
+    });
+    return val;
+  }
+
+  /**
+   * 获取值
+   * @param data {?} 源对象
+   * @param {string} ognl 属性索引
+   * @return {any} 属性值
+   */
+  public static getValue(data: object, ognl: string): any {
+    if (isNullOrUndefined(data)) return null;
+    if (!isString(ognl)) throw "Invalid parameter: ognl";
+
+    let keys = ognl.split(".");
+    if (1 === keys.length) {
+      // 非数组
+      let regex = /\[/;
+      if (!regex.test(ognl)) return data ? data[ognl.trim()] : data;
+      else return Ognls.getArrOgnlVal(data, ognl);
+    }
+
+    let idx = ognl.indexOf(".");
+    let key = ognl.substring(0, idx);
+    let isArr = /\[\d+\]/.test(key);
+    let d = isArr ? Ognls.getArrOgnlVal(data, key) : data[key];
+    let newOgnl = ognl.substring(idx + 1);
+    return Ognls.getValue(d, newOgnl);
+  }
+
+  /**
+   * 设置值
+   * @param v {?} 值
+   * @param {string} _ognl 属性索引
+   * @param {object} d 目标对象
+   * @return {object}
+   */
+  public static setValue(v: any, _ognl: string, d: object) {
+    if (!isObject(d)) return;
+    let ognl = new Ognl(_ognl), tmp;
+
+    // 数组
+    if (ognl.isArray) {
+      // 第一层数组直接赋值
+      // 所以 ognl.floors 需要去掉一层
+      let old = d[ognl.key];
+      let arr;
+      let fIndex = ognl.floors.shift();
+
+      if (!isArray(old))
+        arr = d[ognl.key] = [];
+      else {
+        arr = old;
+        let existLen = arr.length;
+        let offset: number = existLen - fIndex - 1;
+        // 目标下标超出现有数组长度
+        // 执行下标补位
+        if (0 > offset) {
+          offset = Math.abs(offset);
+          while (0 < offset--)
+            arr.push(undefined);
+        }
+        arr.splice(fIndex, 1, []);
+      }
+
+      // 第N层(N>1)
+      let lastIndex = -1;
+      eachA(ognl.floors, (v, k) => {
+        lastIndex = k;
+        arr.splice(v, 1, tmp = []);
+        arr = tmp;
+      });
+
+      // 设置非数组维度的层级关系
+      if (ognl.next) {
+        arr.splice(fIndex, 1, tmp = tmp || {});
+        Ognls.setValue(v, ognl.nextKey, tmp);
+      } else {
+        if (undefined !== lastIndex) arr.splice(lastIndex, 1, v);
+        else arr[fIndex].push(v);
+      }
+    }
+
+    // 对象
+    else {
+      if (ognl.next) {
+        Ognls.setValue(v, ognl.nextKey, d[ognl.key] = {});
+      } else {
+        if (Array.isArray(d)) {
+          d.push(tmp = {});
+          d = tmp;
+        }
+        d[ognl.key] = v;
+      }
+    }
+    return d;
+  }
+}
+
+/**
+ * 解析ognl表达式为节点单向链表
+ */
+class Ognl {
+  key = "";
+  nextKey = "";
+  isArray = false;
+  floors = [];
+  next: Ognl;
+
+  constructor(k: string) {
+    let objIndex = k.indexOf(".");
+    let arrIndex = k.indexOf("[");
+    let hasMore = (-1 !== objIndex);
+
+    if ((-1 !== arrIndex) && ((-1 === objIndex) || (arrIndex < objIndex)))
+      this.isArray = true;
+
+    if (hasMore) {
+      this.key = k.substring(0, objIndex);
+      this.nextKey = k.substring(objIndex + 1);
+      this.next = new Ognl(k.substring(objIndex + 1));
+    } else {
+      this.key = k;
+      this.next = null;
+    }
+
+    if (this.isArray) {
+      let sp: Array<string> = this.key.split("[");
+      this.key = sp.shift();
+      eachA(sp, v => {
+        this.floors.push(parseInt(v));
+      });
+    }
+  }
+}
+
+//</editor-fold>
 
 //<editor-fold desc="validation isXxx...">
 //////////////////////////////////////////// validation
@@ -832,26 +907,47 @@ export function refBox(ref: ElementRef): { ch: number } {
 
 //</editor-fold>
 
-export function urlParam(search: string): any {
-  let index = search.indexOf('?');
-  if (0 !== index) return {};
+/**
+ * 本地存储
+ */
+export class Storages {
 
-  let ret = {};
-  search = search.substr(1);
-  search.split('&').forEach(s => {
-    let sp = s.split('=');
-    let key = sp[0];
-    let oldV = ret[key];
-    if (!oldV) {
-      ret[key] = decodeURIComponent(sp[1]);
-      return;
-    }
+  /**
+   * 本地永久性存储对象
+   * @type {Storages}
+   */
+  public static LOCAL = new Storages(localStorage);
 
-    if (!isArray(oldV))
-      oldV = [oldV];
-    oldV.push(sp[1]);
+  /**
+   * 本地会话级别存储
+   * @type {Storages}
+   */
+  public static SESSION = new Storages(sessionStorage);
 
-    ret[key] = oldV;
-  });
-  return ret;
+  constructor(private storage: Storage) {
+  }
+
+  /**
+   * 获取或设置数据
+   * @param {string} k 关键字
+   * @param {T|null|undefined} [o] null-删除数据, undefined-获取数, any-设置数据
+   * @returns {T} 如果<i>null===o</i>返回之前保存的数据,
+   *              如果<i>undefined===o</i>返回当前保存的数据,
+   *              如果<i>null!=o && undefined!=o</i>返回之前保存的数据
+   */
+  public data<T>(k: string, o?: T): T {
+    let v = this.storage.getItem(k);
+    if (o) this.storage.setItem(k, JSON.stringify(o));
+    else if (null === o) this.storage.removeItem(k);
+    return <T>JSON.parse(v + '');
+  }
+
+  /**
+   * 获取或设置当前用户
+   * @param {T} u 用户数据
+   * @param {T|null|undefined} [u] null-删除数据, undefined-获取数, any-设置数据
+   */
+  public user<T>(u?: T): T {
+    return this.data('__USR__', u);
+  }
 }

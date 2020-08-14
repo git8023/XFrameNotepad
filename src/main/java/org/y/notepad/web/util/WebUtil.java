@@ -7,7 +7,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 import org.y.notepad.util.Constants;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -107,7 +106,7 @@ public class WebUtil {
      * @param <T>  用户泛型类型
      */
     public static <T> void setUser(T user) {
-        setSession(Constants.SESSION_USER, user);
+        setSession(Constants.KEY_OF_SESSION_USER, user);
     }
 
     /**
@@ -117,14 +116,14 @@ public class WebUtil {
      * @return 用户对象
      */
     public static <T> T getUser() {
-        return getSession(Constants.SESSION_USER);
+        return getSession(Constants.KEY_OF_SESSION_USER);
     }
 
     /**
      * 删除Session域中的用户
      */
     public static void delUser() {
-        delSession(Constants.SESSION_USER);
+        delSession(Constants.KEY_OF_SESSION_USER);
     }
 
     /**

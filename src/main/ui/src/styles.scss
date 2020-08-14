@@ -113,7 +113,7 @@ body {
 
 /*滚动条整体部分，可以设置宽度啥的*/
 .def-scroll::-webkit-scrollbar {
-  width: 3px;
+  width: 2px;
 }
 
 .def-scroll::-webkit-scrollbar-button {
@@ -138,7 +138,7 @@ body {
 /*定义右下角拖动块的样式*/
 /*滚动的滑块*/
 .def-scroll::-webkit-scrollbar-thumb {
-  width: 3px;
+  width: 0px;
   background: #ACB5BF;
   /*background: transparent;*/
   /*-webkit-border-radius: 5px;*/

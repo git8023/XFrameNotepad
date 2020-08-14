@@ -17,7 +17,7 @@ public enum ErrorCode {
     ILLEGAL_PARAMETER("参数无效"),
     SYSTEM_INITIALIZING("系统初始化中");
 
-    private String message;
+    public final String message;
 
     ErrorCode(String message) {
         this.message = message;
@@ -27,10 +27,6 @@ public enum ErrorCode {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     /**
      * 中断当前逻辑, 并抛出异常
      *
@@ -38,5 +34,12 @@ public enum ErrorCode {
      */
     public void breakOff(String msg) {
         throw new BusinessException(this, msg);
+    }
+
+    /**
+     * 中断当前逻辑, 并抛出异常
+     */
+    public void breakOff() {
+        breakOff(message);
     }
 }

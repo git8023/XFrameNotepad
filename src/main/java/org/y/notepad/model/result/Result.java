@@ -1,10 +1,12 @@
 package org.y.notepad.model.result;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.util.StringUtil;
 
 @Data
+@NoArgsConstructor
 public class Result {
     private boolean flag;
     private String message;

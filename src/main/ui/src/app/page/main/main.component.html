@@ -11,7 +11,10 @@
        nz-tooltip nzTooltipTitle="同步" nzTooltipPlacement="right"></i>
 
     <i nz-icon nzType="plus-circle" nzTheme="outline" class="add"
-       nz-tooltip nzTooltipTitle="添加" nzTooltipPlacement="right"></i>
+       nz-dropdown [nzDropdownMenu]="addMenus"></i>
+
+    <!--<i nz-icon nzType="plus-circle" nzTheme="outline" class="add"-->
+    <!--nz-popover [nzPopoverContent]="addMenus"></i>-->
 
     <div class="menus flex-v flex-center flex-1 overflow-auto def-scroll">
       <i nz-icon nzType="snippets" nzTheme="outline" class="active"
@@ -30,7 +33,7 @@
          nz-tooltip nzTooltipTitle="回收站" nzTooltipPlacement="right"></i>
 
       <i nz-icon nzType="logout" nzTheme="outline"
-         nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="left" (click)="exitApp()"></i>
+         nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="right" (click)="exitApp()"></i>
     </div>
   </div>
 
@@ -38,12 +41,9 @@
   <div class="dirs-box flex-v full-height">
 
     <!--搜索-->
-    <div class="flex-h search-box">
-      <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"
-         nz-tooltip nzTooltipTitle="返回上一层" nzTooltipPlacement="right"></i>
-      <nz-input-group class="flex-1">
-        <input type="text" nz-input placeholder="输入搜索关键字"/>
-      </nz-input-group>
+    <div class="flex-h search-box flex-center">
+      <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"></i>
+      <nz-input-group class="flex-1"><input type="text" nz-input placeholder="输入搜索关键字"/></nz-input-group>
     </div>
 
     <div class="dirs flex-1 overflow-auto def-scroll">
@@ -83,6 +83,11 @@
          nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>
     </div>
   </div>
-
 </div>
 
+<nz-dropdown-menu #addMenus>
+  <ul nz-menu class="add-menu-box">
+    <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
+    <li nz-menu-item (click)="addDir()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
+  </ul>
+</nz-dropdown-menu>
