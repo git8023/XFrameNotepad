@@ -22,18 +22,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String createToken(int userId) {
+    public User createToken(int userId) {
         String token = XFrameUtil.authorize(userId);
         if (StringUtil.isBlank(token))
             ErrorCode.DENIED_OPERATION.breakOff();
 
-        User user = new User();
-        user.setUserId(userId);
-        user.setToken(token);
-        user.setCreateDate(new Date());
-        userRepository.JPA.save(user);
+        User user = userRepository.JPA.findById(userId);
+        if (null != user) {
+            user.setToken(token);
+            userRepository.JPA.save(user);
+        } else {
+            user = new User();
+            user.setUserId(userId);
+            user.setToken(token);
+            user.setCreateDate(new Date());
+            userRepository.JPA.save(user);
+        }
 
-        return token;
+        return user;
     }
 
 }

@@ -8,12 +8,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 public final class Constants {
     public static final String KEY_OF_SESSION_USER = StringUtil.genGUID();
     public static final String KEY_OF_LOGOUT_REASON = StringUtil.genGUID();
-    public static final String KEY_OF_NOT_FOUND_URI = "KEY_OF_NOT_FOUND_URI";
-    public static final String KEY_OF_CHECK_CODE = "KEY_OF_CHECK_CODE";
-    public static final String KEY_OF_CHECK_CODE_EXPIRED = "KEY_OF_CHECK_CODE_EXPIRED";
+    public static final String KEY_OF_SESSION_USER_ID = StringUtil.genGUID();
+    // public static final String KEY_OF_NOT_FOUND_URI = "KEY_OF_NOT_FOUND_URI";
+    // public static final String KEY_OF_CHECK_CODE = "KEY_OF_CHECK_CODE";
+    // public static final String KEY_OF_CHECK_CODE_EXPIRED = "KEY_OF_CHECK_CODE_EXPIRED";
 
-    public static final String VALUE_OF_INITIAL_PASSWORD = StringUtil.getMD5("123456");
-    public static final int VALUE_OF_CHECK_CODE_EXPIRED_MINUTES = 5;
+    // public static final String VALUE_OF_INITIAL_PASSWORD = StringUtil.getMD5("123456");
+    // public static final int VALUE_OF_CHECK_CODE_EXPIRED_MINUTES = 5;
 
     public interface URL {
 

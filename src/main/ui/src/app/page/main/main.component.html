@@ -13,9 +13,6 @@
     <i nz-icon nzType="plus-circle" nzTheme="outline" class="add"
        nz-dropdown [nzDropdownMenu]="addMenus"></i>
 
-    <!--<i nz-icon nzType="plus-circle" nzTheme="outline" class="add"-->
-    <!--nz-popover [nzPopoverContent]="addMenus"></i>-->
-
     <div class="menus flex-v flex-center flex-1 overflow-auto def-scroll">
       <i nz-icon nzType="snippets" nzTheme="outline" class="active"
          nz-tooltip nzTooltipTitle="最近文档" nzTooltipPlacement="right"></i>
@@ -42,15 +39,18 @@
 
     <!--搜索-->
     <div class="flex-h search-box flex-center">
-      <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"></i>
+      <i nz-icon nzType="rollback" nzTheme="outline" class="up-level" (click)="intoParentDir()"></i>
       <nz-input-group class="flex-1"><input type="text" nz-input placeholder="输入搜索关键字"/></nz-input-group>
     </div>
 
     <div class="dirs flex-1 overflow-auto def-scroll">
-      <div class="path flex-h flex-center">
+
+      <div class="path flex-h flex-center" *ngFor="let dir of dirs"
+           (click)="setParent(dir)" [class.context-open]="dir == contextDir"
+           (contextmenu)="dirContextMenu($event, addMenus, dir)">
         <i nz-icon nzType="folder" nzTheme="outline" class="icon"></i>
-        <span class="text flex-1">这个文件夹名字有点长啊, 就是很长很长, 怎么办呢?</span>
-        <span class="date">16</span>
+        <span class="text flex-1">{{dir.name}}</span>
+        <span class="date">0</span>
       </div>
 
       <div class="path flex-h flex-center opened">
@@ -88,6 +88,34 @@
 <nz-dropdown-menu #addMenus>
   <ul nz-menu class="add-menu-box">
     <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
-    <li nz-menu-item (click)="addDir()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
+    <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
   </ul>
 </nz-dropdown-menu>
+
+<nz-modal [(nzVisible)]="addModalVisible"
+          [nzTitle]="addFolderTitle"
+          nzWrapClassName="vertical-center-modal"
+          (nzOnCancel)="addModalVisible=false"
+          (nzOnOk)="addDir()">
+  <div nz-form [formGroup]="addDirForm">
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired>目录名</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" [nzErrorTip]="addDirErrorTpl">
+        <input nz-input formControlName="name"/>
+      </nz-form-control>
+    </nz-form-item>
+  </div>
+
+  <ng-template #addDirErrorTpl let-control>
+    <ng-container *ngIf="control.hasError('required')">请输入目录名称</ng-container>
+    <ng-container *ngIf="control.hasError('regexp')">仅支持中英文_$和数字, 长度2~10之间!</ng-container>
+  </ng-template>
+</nz-modal>
+<ng-template #addFolderTitle>
+  <div><i nz-icon nzType="folder-add" nzTheme="outline"></i>新建目录</div>
+</ng-template>
+
+<!--上下文菜单遮罩-->
+<div class="absolute full-parent context-menu-mask"
+     [class.hidden]="!showContextMenu"
+     (click)="closeContextMenu()"></div>

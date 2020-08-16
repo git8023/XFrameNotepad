@@ -506,6 +506,32 @@ export function validNgForm(fm: FormGroup): boolean {
   return fm.valid;
 }
 
+/**
+ * 正则表达式表单内容校验
+ * @param cfg.regex 正则表达式
+ * @param [cfg.ret = {regexp: true}] 校验失败返回的消息
+ * @param [cfg.truth] [true]-测试通过返回ret, false-测试失败返回ret
+ */
+export function regexpValidator(cfg: {
+  regex: RegExp,
+  ret?: any,
+  truth?: boolean
+}) {
+  cfg.ret = cfg.ret || {regexp: true};
+  if (isNullOrUndefined(cfg.truth))
+    cfg.truth = true;
+
+  return (c: FormControl) => {
+    if (c.value) {
+      let testResult = cfg.regex.test(c.value);
+      if (testResult === cfg.truth)
+        return cfg.ret;
+    }
+
+    return {};
+  }
+}
+
 //</editor-fold>
 
 //<editor-fold desc="http">

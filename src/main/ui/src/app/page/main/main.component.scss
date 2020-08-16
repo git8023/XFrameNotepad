@@ -86,6 +86,10 @@
         white-space: nowrap;
         border-bottom: 1px solid #dadada;
 
+        &.context-open {
+          background: #5576BD;
+        }
+
         &:last-child {
 
         }
@@ -172,4 +176,9 @@
       border-radius: 0 0 5px 5px;
     }
   }
+}
+
+.context-menu-mask {
+  background: transparent;
+  z-index: 999;
 }

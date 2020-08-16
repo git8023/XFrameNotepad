@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.y.notepad.model.entity.User;
 import org.y.notepad.model.result.Result;
 import org.y.notepad.service.UserService;
+import org.y.notepad.util.Constants;
 import org.y.notepad.web.util.WebUtil;
 
 /**
@@ -25,7 +27,9 @@ public class UserController {
      */
     @RequestMapping("/login")
     public Result login(int userId) {
-        String token = userService.createToken(userId);
-        return Result.data(token);
+        WebUtil.setSession(Constants.KEY_OF_SESSION_USER_ID, userId);
+        User user = userService.createToken(userId);
+        WebUtil.setUser(user);
+        return Result.data(user.getToken());
     }
 }

@@ -1,6 +1,10 @@
 # http访问地址
 server:
   port: 9000
+  servlet:
+    session:
+      cookie:
+        name: notepadSessionID
 
 # mybatis配置
 mybatis:

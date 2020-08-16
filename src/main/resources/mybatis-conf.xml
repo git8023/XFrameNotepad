@@ -3,7 +3,7 @@
 <configuration>
 
     <typeAliases>
-        <package name="org.y.core.model.entity"/>
+        <package name="org.y.notepad.model.entity"/>
     </typeAliases>
 
     <typeHandlers>
