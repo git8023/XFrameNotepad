@@ -10,8 +10,16 @@
     <i nz-icon nzType="sync" nzTheme="outline"
        nz-tooltip nzTooltipTitle="同步" nzTooltipPlacement="right"></i>
 
+    <!--nz-dropdown [nzDropdownMenu]="addMenus"-->
     <i nz-icon nzType="plus-circle" nzTheme="outline" class="add"
-       nz-dropdown [nzDropdownMenu]="addMenus"></i>
+       nz-menu [nzMode]="'vertical'">
+      <div nz-submenu>
+        <ul nz-menu class="add-menu-box">
+          <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
+          <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
+        </ul>
+      </div>
+    </i>
 
     <div class="menus flex-v flex-center flex-1 overflow-auto def-scroll">
       <i nz-icon nzType="snippets" nzTheme="outline" class="active"
@@ -95,7 +103,7 @@
 <nz-modal [(nzVisible)]="addModalVisible"
           [nzTitle]="addFolderTitle"
           nzWrapClassName="vertical-center-modal"
-          (nzOnCancel)="addModalVisible=false"
+          (nzOnCancel)="hideAddDirModal()"
           (nzOnOk)="addDir()">
   <div nz-form [formGroup]="addDirForm">
     <nz-form-item>
@@ -116,6 +124,6 @@
 </ng-template>
 
 <!--上下文菜单遮罩-->
-<div class="absolute full-parent context-menu-mask"
+<div *ngIf="showContextMenu" class="absolute full-parent context-menu-mask"
      [class.hidden]="!showContextMenu"
      (click)="closeContextMenu()"></div>

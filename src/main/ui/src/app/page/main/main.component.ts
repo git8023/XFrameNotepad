@@ -136,6 +136,12 @@ export class MainComponent implements OnInit {
     this.addDirForm.reset();
   }
 
+  // 关闭添加目录窗口
+  hideAddDirModal() {
+    this.addModalVisible = false;
+    this.closeContextMenu();
+  }
+
   // 加载目录和文件
   private reloadDirs() {
     post(this.http, `/dir/dirs/${this.currentDir.id}`, null, ...catchErr())
@@ -167,10 +173,17 @@ export class MainComponent implements OnInit {
     this.nzContextMenuService.create($event, menu);
   }
 
-  // 關閉上下文菜單
+  // 关闭上下文菜单
   closeContextMenu() {
+    this.nzContextMenuService.close();
     this.contextDir = null;
     this.showContextMenu = false;
     console.log("关闭上下文菜单");
   }
+
+  // 添加文件
+  addFile() {
+    console.log(this.contextDir, this.currentDir);
+  }
+
 }
