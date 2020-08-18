@@ -1,6 +1,7 @@
 package org.y.notepad.model.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -10,6 +11,8 @@ import java.util.Date;
  */
 @Data
 @Entity
+@Table
+@NoArgsConstructor
 public class Directory {
 
     @Id
@@ -44,4 +47,8 @@ public class Directory {
      * 创建时间
      */
     private Date createTime;
+
+    public Directory(int id) {
+        this.id = id;
+    }
 }

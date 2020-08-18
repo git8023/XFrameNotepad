@@ -1,6 +1,7 @@
 package org.y.notepad.model.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -8,6 +9,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "user")
+@NoArgsConstructor
 public class User {
 
     // 自增ID
@@ -24,4 +26,7 @@ public class User {
     // 创建时间
     private Date createDate;
 
+    public User(int userId) {
+        this.userId = userId;
+    }
 }

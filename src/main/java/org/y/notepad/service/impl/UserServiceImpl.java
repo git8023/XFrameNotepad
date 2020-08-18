@@ -42,4 +42,9 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    public User getById(int id) {
+        return userRepository.JPA.findById(id);
+    }
+
 }

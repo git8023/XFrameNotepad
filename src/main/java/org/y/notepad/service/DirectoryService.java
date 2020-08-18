@@ -1,6 +1,7 @@
 package org.y.notepad.service;
 
 import org.y.notepad.model.entity.Directory;
+import org.y.notepad.model.entity.User;
 
 import java.util.List;
 
@@ -34,4 +35,12 @@ public interface DirectoryService {
      * @return 子目录列表
      */
     List<Directory> getDirs(int userId, int parentId);
+
+    /**
+     * 指定ID获取目录
+     *
+     * @param id 目录ID
+     * @return 目录信息
+     */
+    Directory getById(int id);
 }

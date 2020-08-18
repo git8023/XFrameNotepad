@@ -39,6 +39,8 @@ export class MainComponent implements OnInit {
   contextDir: Directory;
   // 上下文菜单状态
   showContextMenu = false;
+  // 加载中?
+  isLoading = false;
 
   constructor(
     private http: HttpClient,
@@ -51,8 +53,7 @@ export class MainComponent implements OnInit {
 
   ngOnInit(): void {
     // TODO
-    this.init();
-
+    // this.init();
 
     let addDirValid = regexpValidator({regex: /^[a-zA-Z\u4e00-\u9fa5_$0-9]{2,10}$/, truth: false});
     this.addDirForm = this.fb.group({
@@ -88,8 +89,8 @@ export class MainComponent implements OnInit {
     if (!validNgForm(this.addDirForm))
       return;
 
-    // 上下文菜单检测?
-    let parentId = this.addModalVisible ? this.contextDir.id : this.currentDir.id;
+    this.isLoading = true;
+    let parentId = (this.contextDir || this.currentDir).id;
     let url = `/dir/add/${this.addDirForm.value.name}/${parentId}`;
     post(this.http, url, null, ...catchErr())
       .subscribe(handleResult2({
@@ -98,7 +99,8 @@ export class MainComponent implements OnInit {
           this.reloadDirs();
           this.addModalVisible = false;
           this.closeContextMenu();
-        }
+        },
+        final: () => this.isLoading = false
       }));
   }
 
@@ -144,12 +146,14 @@ export class MainComponent implements OnInit {
 
   // 加载目录和文件
   private reloadDirs() {
+    this.isLoading = true;
     post(this.http, `/dir/dirs/${this.currentDir.id}`, null, ...catchErr())
       .subscribe(handleResult2({
         notify: this.notify,
         onOk: ret => {
           this.dirs = ret.data || [];
-        }
+        },
+        final: () => this.isLoading = false
       }));
   }
 
@@ -178,12 +182,20 @@ export class MainComponent implements OnInit {
     this.nzContextMenuService.close();
     this.contextDir = null;
     this.showContextMenu = false;
-    console.log("关闭上下文菜单");
   }
 
   // 添加文件
   addFile() {
-    console.log(this.contextDir, this.currentDir);
+    this.isLoading = true;
+    let dirId = (this.contextDir || this.currentDir).id;
+    post(this.http, `/notepad/newBlank/${dirId}`, null, ...catchErr())
+      .subscribe(handleResult2({
+        notify: this.notify,
+        onOk: ret => {
+          console.log('文件创建成功', ret);
+        },
+        final: () => this.isLoading = false
+      }));
   }
 
 }

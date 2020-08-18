@@ -73,6 +73,11 @@ public class DirectoryServiceImpl implements DirectoryService {
         return directoryRepository.MAPPER.selectListByCreatorAndParent(userId, pid);
     }
 
+    @Override
+    public Directory getById(int id) {
+        return directoryRepository.JPA.findById(id);
+    }
+
     /**
      * 转换为完整路径
      *
