@@ -1,4 +1,3 @@
-<!--<nz-spin [nzSpinning]="isLoading && false">-->
 <div class="main flex-h full-parent children-full-height_1 full-height">
 
   <!--左侧菜单栏-->
@@ -56,7 +55,7 @@
       <!--目录列表-->
       <div class="path flex-h flex-center" *ngFor="let dir of dirs"
            (click)="setParent(dir)" [class.context-open]="dir == contextDir"
-           (contextmenu)="dirContextMenu($event, addMenus, dir)">
+           (contextmenu)="dirContextMenu($event, dirContextMenus, dir)">
         <i nz-icon nzType="folder" nzTheme="outline" class="icon"></i>
         <span class="text flex-1">{{dir.name}}</span>
         <span class="date">0</span>
@@ -98,13 +97,13 @@
     </div>
   </div>
 </div>
-<!--</nz-spin>-->
 
-<!--左侧加号下拉菜单-->
-<nz-dropdown-menu #addMenus>
+<!--目录右键菜单-->
+<nz-dropdown-menu #dirContextMenus>
   <ul nz-menu class="add-menu-box">
     <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
     <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
+    <li nz-menu-item (click)="alert(1)"><i nz-icon nzType="folder" nzTheme="outline"></i>修改名称</li>
   </ul>
 </nz-dropdown-menu>
 
