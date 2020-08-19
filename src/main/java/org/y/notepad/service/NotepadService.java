@@ -2,6 +2,8 @@ package org.y.notepad.service;
 
 import org.y.notepad.model.entity.Notepad;
 
+import java.util.List;
+
 /**
  * 文件服务接口
  */
@@ -16,4 +18,18 @@ public interface NotepadService {
      */
     Notepad createBlank(int dirId, int userId);
 
+    /**
+     * 指定用户和目录获取记事本列表
+     *
+     * @param dirId  目录
+     * @param userId 用户ID
+     * @return 记事本列表
+     */
+    List<Notepad> listByDir(int dirId, int userId);
+
+    /**
+     * 更新记事本
+     * @param notepad 记事本数据
+     */
+    void update(Notepad notepad);
 }

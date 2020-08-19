@@ -109,7 +109,6 @@ export class EventHandlerStore {
    */
   private static handle(ev: EventData) {
     let handlers = this.store[ev.type] || [];
-    console.log('收到应用发送的消息', ev, handlers);
     eachA(handlers, f => false == f(ev.value));
   }
 

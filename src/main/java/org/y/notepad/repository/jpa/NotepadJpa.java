@@ -20,4 +20,20 @@ public interface NotepadJpa extends JpaRepository<Notepad, Integer> {
      */
     List<Notepad> findAllByCreatorAndTypeAndDir(User creator, NotepadType type, Directory dir);
 
+    /**
+     * 指定创建者和目录查询记事本列表
+     *
+     * @param creator 创建者
+     * @param dir     目录
+     * @return 记事本列表
+     */
+    List<Notepad> findAllByCreatorAndDir(User creator, Directory dir);
+
+    /**
+     * 指定ID获取记事本信息
+     *
+     * @param id 记事本ID
+     * @return 记事本信息
+     */
+    Notepad findById(int id);
 }

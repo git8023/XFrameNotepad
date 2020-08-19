@@ -39,7 +39,7 @@
             ],
             "scripts": [
               "./node_modules/jquery/dist/jquery.min.js",
-              "src/assets/editor.md/editormd.min.js",
+              "src/assets/editor.md/editormd.js",
               "src/assets/editor.md/lib/marked.min.js",
               "src/assets/editor.md/lib/prettify.min.js"
             ]

@@ -1,99 +1,106 @@
-<nz-spin [nzSpinning]="isLoading">
-  <div class="main flex-h full-parent children-full-height_1 full-height">
+<!--<nz-spin [nzSpinning]="isLoading && false">-->
+<div class="main flex-h full-parent children-full-height_1 full-height">
 
-    <!--左侧菜单栏-->
-    <div class="main-menus flex-v flex-center full-height">
-      <img src="/assets/head_pic.png" class="head-pic"/>
+  <!--左侧菜单栏-->
+  <div class="main-menus flex-v flex-center full-height">
+    <img src="/assets/head_pic.png" class="head-pic"/>
 
-      <i nz-icon nzType="sketch" nzTheme="outline"
-         nz-tooltip nzTooltipTitle="会员" nzTooltipPlacement="right"></i>
+    <i nz-icon nzType="sketch" nzTheme="outline"
+       nz-tooltip nzTooltipTitle="会员" nzTooltipPlacement="right"></i>
 
-      <i nz-icon nzType="sync" nzTheme="outline"
-         nz-tooltip nzTooltipTitle="同步" nzTooltipPlacement="right"></i>
+    <i nz-icon nzType="sync" nzTheme="outline"
+       nz-tooltip nzTooltipTitle="同步" nzTooltipPlacement="right"></i>
 
-      <i nz-icon nzType="plus-circle" nzTheme="outline" class="add"
-         nz-menu [nzMode]="'vertical'">
-        <div nz-submenu>
-          <ul nz-menu class="add-menu-box context-menu">
-            <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
-            <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
-          </ul>
-        </div>
-      </i>
-
-      <div class="menus flex-v flex-center flex-1 overflow-auto def-scroll">
-        <i nz-icon nzType="snippets" nzTheme="outline" class="active"
-           nz-tooltip nzTooltipTitle="最近文档" nzTooltipPlacement="right"></i>
-
-        <i nz-icon nzType="folder" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="我的文件夹" nzTooltipPlacement="right"></i>
-
-        <i nz-icon nzType="deployment-unit" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="与我分享" nzTooltipPlacement="right"></i>
-
-        <i nz-icon nzType="share-alt" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="我的分享" nzTooltipPlacement="right"></i>
-
-        <i nz-icon nzType="delete" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="回收站" nzTooltipPlacement="right"></i>
-
-        <i nz-icon nzType="logout" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="right" (click)="exitApp()"></i>
+    <i nz-icon nzType="plus-circle" nzTheme="outline" class="add"
+       nz-menu [nzMode]="'vertical'">
+      <div nz-submenu>
+        <ul nz-menu class="add-menu-box context-menu">
+          <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
+          <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
+        </ul>
       </div>
-    </div>
+    </i>
 
-    <!--中间虚拟文件夹/文件-->
-    <div class="dirs-box flex-v full-height">
+    <div class="menus flex-v flex-center flex-1 overflow-auto def-scroll">
+      <i nz-icon nzType="snippets" nzTheme="outline" class="active"
+         nz-tooltip nzTooltipTitle="最近文档" nzTooltipPlacement="right"></i>
 
-      <!--搜索-->
-      <div class="flex-h search-box flex-center">
-        <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"
-           (click)="intoParentDir()" [class.disabled]="-1 == currentDir.id"></i>
-        <nz-input-group class="flex-1"><input type="text" nz-input placeholder="输入搜索关键字"/></nz-input-group>
-      </div>
+      <i nz-icon nzType="folder" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="我的文件夹" nzTooltipPlacement="right"></i>
 
-      <div class="dirs flex-1 overflow-auto def-scroll">
-        <div class="path flex-h flex-center" *ngFor="let dir of dirs"
-             (click)="setParent(dir)" [class.context-open]="dir == contextDir"
-             (contextmenu)="dirContextMenu($event, addMenus, dir)">
-          <i nz-icon nzType="folder" nzTheme="outline" class="icon"></i>
-          <span class="text flex-1">{{dir.name}}</span>
-          <span class="date">0</span>
-        </div>
+      <i nz-icon nzType="deployment-unit" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="与我分享" nzTooltipPlacement="right"></i>
 
-        <div class="path flex-h flex-center opened">
-          <i nz-icon nzType="file-text" nzTheme="outline" class="icon"></i>
-          <span class="text flex-1">帮助文档</span>
-          <span class="date">2020-08-07</span>
-        </div>
-        <div class="path flex-h flex-center">
-          <i nz-icon nzType="file-text" nzTheme="outline" class="icon"></i>
-          <span class="text flex-1">帮助文档</span>
-          <span class="date">2020-08-07</span>
-        </div>
+      <i nz-icon nzType="share-alt" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="我的分享" nzTooltipPlacement="right"></i>
 
-      </div>
-    </div>
+      <i nz-icon nzType="delete" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="回收站" nzTooltipPlacement="right"></i>
 
-    <!--右侧内容-->
-    <div class="content flex-1 flex-h ">
-      <div class="flex-1 full-height overflow-auto" #content>
-        <div class="md-editor" id="mdEditor">
-          <textarea></textarea>
-        </div>
-      </div>
-
-      <div class="operation flex-v">
-        <i nz-icon nzType="profile" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="模式切换" nzTooltipPlacement="left"></i>
-
-        <i nz-icon nzType="share-alt" nzTheme="outline"
-           nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>
-      </div>
+      <i nz-icon nzType="logout" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="退出" nzTooltipPlacement="right" (click)="exitApp()"></i>
     </div>
   </div>
-</nz-spin>
 
+  <!--中间虚拟文件夹/文件-->
+  <div class="dirs-box flex-v full-height">
+
+    <!--搜索-->
+    <div class="flex-h search-box flex-center">
+      <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"
+         (click)="intoParentDir()" [class.disabled]="-1 == currentDir.id"></i>
+      <nz-input-group class="flex-1"><input type="text" nz-input placeholder="输入搜索关键字"/></nz-input-group>
+    </div>
+
+    <div class="dirs flex-1 overflow-auto def-scroll">
+      <!--目录列表-->
+      <div class="path flex-h flex-center" *ngFor="let dir of dirs"
+           (click)="setParent(dir)" [class.context-open]="dir == contextDir"
+           (contextmenu)="dirContextMenu($event, addMenus, dir)">
+        <i nz-icon nzType="folder" nzTheme="outline" class="icon"></i>
+        <span class="text flex-1">{{dir.name}}</span>
+        <span class="date">0</span>
+      </div>
+
+      <!--文件列表-->
+      <div class="path flex-h flex-center" *ngFor="let file of notepads"
+           (click)="openNotepad(file)" [class.opened]="openedNotepad == file">
+        <i nz-icon nzType="file-text" nzTheme="outline" class="icon"></i>
+        <span class="text flex-1">{{file.title}}</span>
+        <span class="date">{{file.lastModified}}</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!--右侧内容-->
+  <div class="content flex-1 flex-h ">
+    <div class="flex-1 full-height overflow-auto flex-v" #content>
+
+      <div class="title-editor flex-h flex-center">
+        <input class="flex-1" [(ngModel)]="openedNotepad!.title"/>
+      </div>
+
+      <div class="md-editor flex-1" id="mdEditor">
+        <textarea></textarea>
+      </div>
+    </div>
+
+    <div class="operation flex-v">
+      <i nz-icon nzType="sync" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="手动保存" nzTooltipPlacement="left" (click)="saveNotepad()"></i>
+
+      <i nz-icon nzType="profile" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="模式切换" nzTooltipPlacement="left" (click)="changeEditorModal()"></i>
+
+      <i nz-icon nzType="share-alt" nzTheme="outline"
+         nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>
+    </div>
+  </div>
+</div>
+<!--</nz-spin>-->
+
+<!--左侧加号下拉菜单-->
 <nz-dropdown-menu #addMenus>
   <ul nz-menu class="add-menu-box">
     <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
@@ -101,6 +108,7 @@
   </ul>
 </nz-dropdown-menu>
 
+<!--添加目录弹出窗口-->
 <nz-modal [(nzVisible)]="addModalVisible"
           [nzTitle]="addFolderTitle"
           nzWrapClassName="vertical-center-modal"

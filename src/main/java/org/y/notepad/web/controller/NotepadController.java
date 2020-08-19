@@ -10,6 +10,8 @@ import org.y.notepad.model.result.Result;
 import org.y.notepad.service.NotepadService;
 import org.y.notepad.web.util.WebUtil;
 
+import java.util.List;
+
 /**
  * 文件控制器
  */
@@ -37,4 +39,29 @@ public class NotepadController {
         return Result.data(notepad);
     }
 
+    /**
+     * 获取指定目录下所有记事本列表
+     *
+     * @param dirId 目录ID
+     */
+    @RequestMapping("/list/{dirId}")
+    public Result list(@PathVariable int dirId) {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        List<Notepad> notepads = notepadService.listByDir(dirId, userId);
+        return Result.data(notepads);
+    }
+
+    /**
+     * 更新
+     *
+     * @param notepad 记事本ID
+     */
+    @RequestMapping("/update")
+    public Result update(Notepad notepad) {
+        User user = WebUtil.getUser();
+        notepad.setCreator(user);
+        notepadService.update(notepad);
+        return Result.success();
+    }
 }

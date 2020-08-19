@@ -1,6 +1,7 @@
 package org.y.notepad.model.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import java.util.Date;
 @Entity
 @Table(name = "user")
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class User {
 
     // 自增ID
