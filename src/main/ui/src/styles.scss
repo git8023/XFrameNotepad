@@ -86,6 +86,7 @@ body {
 
 .flex-center {
   align-items: center;
+  justify-content: center;
 }
 
 .flex-v {
@@ -203,3 +204,6 @@ body {
 }
 
 //</editor-fold>
+.color-red {
+  color: #f00;
+}

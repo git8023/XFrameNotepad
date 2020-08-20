@@ -9,6 +9,7 @@ import {ElementRef} from '@angular/core';
 import {catchError, delay, map} from "rxjs/operators";
 import {OperatorFunction} from "rxjs";
 
+//<editor-fold desc="Define">
 //<editor-fold desc="Other">
 //////////////////////////////////////////// other
 /**
@@ -684,7 +685,8 @@ export function pipes<T>(obs: Observable<T>, ...optFns: OperatorFunction<any, an
  * @param http HTTP客户端
  * @param url 请求地址
  * @param param 请求参数
- * @param optFns 操作项
+ * @param optFns 操作项, 默认支持 {@link catchErr()}
+ * @see catchErr()
  */
 export function post<T>(
   http: HttpClient,
@@ -692,7 +694,7 @@ export function post<T>(
   param?: any,
   ...optFns: OperatorFunction<any, any>[]
 ): Observable<T> {
-  return pipes<T>(http.post<T>(url, createHttpParams(param)), ...optFns);
+  return pipes<T>(http.post<T>(url, createHttpParams(param)), ...(optFns || catchErr()));
 }
 
 /**
@@ -727,9 +729,6 @@ export function urlParam(search: string): { [s: string]: string | string[] } {
 //</editor-fold>
 
 //<editor-fold desc="ognl">
-/**
- * OGNL表达式对象工具
- */
 /**
  * OGNL表达式对象工具
  */
@@ -977,3 +976,41 @@ export class Storages {
     return this.data('__USR__', u);
   }
 }
+
+/**
+ * 调试器
+ */
+export class Debugger {
+
+  /**
+   * 只在本地开发时执行
+   * @param {Function} fn 目标函数
+   * @returns {Debugger}
+   */
+  static dev(fn: Function) {
+    if (this.isDevModel() && isFunction(fn))
+      fn();
+    return this;
+  }
+
+  /**
+   * 只在线上环境执行
+   * @param {Function} fn 目标函数
+   * @returns {Debugger}
+   */
+  static prod(fn: Function) {
+    if (!this.isDevModel() && isFunction(fn))
+      fn();
+    return this;
+  }
+
+  /**
+   * 当前是否为开发模式
+   * @returns {boolean} true-开发模式, false-线上模式
+   */
+  private static isDevModel() {
+    return 'http://localhost:4200' === location.origin;
+  }
+}
+
+//</editor-fold>

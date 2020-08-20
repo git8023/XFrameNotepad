@@ -1,5 +1,6 @@
 package org.y.notepad.repository.mapper;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
@@ -41,4 +42,15 @@ public interface DirectoryMapper {
     List<Directory> selectListByCreatorAndParent(
             @Param("userId") int userId,
             @Param("parentId") Integer parentId);
+
+    /**
+     * 指定目录删除所有子目录和自身
+     *
+     * @param dirId 目录ID
+     * @return 数据库受影响行数
+     */
+    @Delete({
+            ""
+    })
+    int deleteAllByDir(@Param("dirId") int dirId);
 }

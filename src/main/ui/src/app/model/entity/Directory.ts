@@ -6,4 +6,6 @@ export class Directory {
   path?: string;
   parent?: Directory;
 
+  // 修改前名称
+  oldName?: string;
 }

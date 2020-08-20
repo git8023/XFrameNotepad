@@ -48,6 +48,11 @@ public class Directory {
      */
     private Date createTime;
 
+    /**
+     * 最后修改时间
+     */
+    private Date lastModified;
+
     public Directory(int id) {
         this.id = id;
     }

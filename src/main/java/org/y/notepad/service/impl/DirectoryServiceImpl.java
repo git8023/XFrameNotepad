@@ -1,13 +1,18 @@
 package org.y.notepad.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.y.notepad.model.entity.Directory;
+import org.y.notepad.model.entity.Notepad;
 import org.y.notepad.model.entity.User;
 import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.repository.DirectoryRepository;
+import org.y.notepad.repository.NotepadRepository;
 import org.y.notepad.repository.UserRepository;
 import org.y.notepad.service.DirectoryService;
+import org.y.notepad.util.CollectionUtil;
+import org.y.notepad.util.StringUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -22,10 +27,17 @@ public class DirectoryServiceImpl implements DirectoryService {
 
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
+    private final NotepadRepository notepadRepository;
 
-    public DirectoryServiceImpl(DirectoryRepository directoryRepository, UserRepository userRepository) {
+    @Autowired
+    public DirectoryServiceImpl(
+            DirectoryRepository directoryRepository,
+            UserRepository userRepository,
+            NotepadRepository notepadRepository
+    ) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
+        this.notepadRepository = notepadRepository;
     }
 
     @Transactional
@@ -76,6 +88,52 @@ public class DirectoryServiceImpl implements DirectoryService {
     @Override
     public Directory getById(int id) {
         return directoryRepository.JPA.findById(id);
+    }
+
+    @Override
+    public void updateName(int id, String newlyName, int userId) {
+        Directory dir = directoryRepository.JPA.findById(id);
+        if (dir.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        if (!StringUtil.equalsTwo(newlyName, dir.getName())) {
+            dir.setName(newlyName);
+            dir.setLastModified(new Date());
+            directoryRepository.JPA.save(dir);
+        }
+    }
+
+    @Override
+    public boolean delete(int id, int userId) {
+        Directory dir = directoryRepository.JPA.findById(id);
+        if (dir.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        List<Directory> dirs = getDirs(userId, id);
+        if (CollectionUtil.isNotEmpty(dirs))
+            return false;
+
+        User creator = userRepository.JPA.findById(userId);
+        List<Notepad> notepads = notepadRepository.JPA.findAllByCreatorAndDir(creator, dir);
+        if (CollectionUtil.isNotEmpty(notepads))
+            return false;
+
+        directoryRepository.JPA.delete(dir);
+        return true;
+    }
+
+    @Transactional
+    @Override
+    public void deleteForce(int id, int userId) {
+        Directory dir = directoryRepository.JPA.findById(id);
+        if (dir.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        // 删除所有目录
+        directoryRepository.MAPPER.deleteAllByDir(id);
+
+        // 删除所有文件
+        notepadRepository.MAPPER.deleteAllByDir(id);
     }
 
     /**

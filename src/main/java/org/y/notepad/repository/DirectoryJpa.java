@@ -25,4 +25,11 @@ public interface DirectoryJpa extends JpaRepository<Directory, Integer> {
      */
     Directory findById(int id);
 
+    /**
+     * 指定父级目录
+     * @param parent
+     * @return
+     */
+    List<Directory> findAllByParent(Directory parent);
+
 }

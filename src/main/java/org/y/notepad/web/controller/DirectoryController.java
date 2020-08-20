@@ -65,4 +65,37 @@ public class DirectoryController {
         List<Directory> dirs = directoryService.getDirs(userId, id);
         return Result.data(dirs);
     }
+
+    /**
+     * 更新目录名称
+     *
+     * @param id   目录ID
+     * @param name 新名称
+     */
+    @RequestMapping("/updateName")
+    public Result updateName(int id, String name) {
+        User user = WebUtil.getUser();
+        int userId = user.getUserId();
+        directoryService.updateName(id, name, userId);
+        return Result.success();
+    }
+
+    /**
+     * 删除目录, 空目录直接删除, 否则需要确认是否全部删除
+     *
+     * @param id    目录ID
+     * @param force true-强制删除所有, false-只删除空目录
+     */
+    @RequestMapping("/del/{id}")
+    public Result delete(@PathVariable int id, boolean force) {
+        User user = WebUtil.getUser();
+        int userId = user.getUserId();
+
+        boolean ret = true;
+        if (force) directoryService.deleteForce(id, userId);
+        else ret = directoryService.delete(id, userId);
+
+        return Result.data(ret);
+    }
+
 }

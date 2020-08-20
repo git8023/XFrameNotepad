@@ -1,6 +1,16 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {EditorConfig} from "../../cfg/editor-config";
-import {catchErr, dateFmt, eachA, handleResult2, post, regexpValidator, Storages, validNgForm} from '../../util/utils';
+import {
+  catchErr,
+  dateFmt,
+  Debugger,
+  eachA,
+  handleResult2,
+  post,
+  regexpValidator,
+  Storages,
+  validNgForm
+} from '../../util/utils';
 import {HttpClient} from '@angular/common/http';
 import {NzContextMenuService, NzDropdownMenuComponent, NzModalService, NzNotificationService} from 'ng-zorro-antd';
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
@@ -8,6 +18,7 @@ import {Directory} from "../../model/entity/Directory";
 import {EmitType, XFrames} from "../../util/xframes";
 import {Notepad} from '../../model/entity/Notepad';
 import {isNullOrUndefined} from 'util';
+import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
 
 declare var editormd: any;
 
@@ -37,7 +48,9 @@ export class MainComponent implements OnInit {
   // 添加目录表单
   addDirForm: FormGroup;
   // 目录列表
-  dirs: Array<Directory> = [];
+  dirs: Array<Directory> = [
+    {id: 1, name: '目录1'}
+  ];
   // 文件列表
   notepads: Array<Notepad> = [
     {id: 1, content: '123<b>粗体</b>哈哈'}
@@ -54,50 +67,58 @@ export class MainComponent implements OnInit {
   openedNotepad: Notepad = {title: ''};
   // 切换编辑器模式
   editorModel: EditorModel = 0;
+  // 目录名称校验器
+  dirNameValidator = regexpValidator({regex: /^[a-zA-Z\u4e00-\u9fa5_$0-9]{2,10}$/, truth: false});
 
   constructor(
     private http: HttpClient,
     private notify: NzNotificationService,
     private modal: NzModalService,
     private fb: FormBuilder,
-    private nzContextMenuService: NzContextMenuService
+    private nzContextMenuService: NzContextMenuService,
   ) {
     window['x'] = this;
   }
 
   ngOnInit(): void {
-    // // TODO
-    // this.init();
 
     // 添加目录表单
-    let addDirValid = regexpValidator({regex: /^[a-zA-Z\u4e00-\u9fa5_$0-9]{2,10}$/, truth: false});
     this.addDirForm = this.fb.group({
-      name: [null, [Validators.required, addDirValid]]
+      name: [null, [Validators.required, this.dirNameValidator]]
     });
 
-    // 登录校验
-    let userId = Storages.SESSION.user();
-    if (!userId) {
-      this.modal.warning({
-        nzTitle: '警告',
-        nzContent: '非法调用',
-        nzWrapClassName: 'vertical-center-modal',
-        nzOnCancel: MainComponent.exitApp,
-        nzOnOk: MainComponent.exitApp
+    Debugger
+      .dev(() => this.init())
+      .prod(() => {
+        // 登录校验
+        let userId = Storages.SESSION.user();
+        if (!userId) {
+          this.modal.warning({
+            nzTitle: '警告',
+            nzContent: '非法调用',
+            nzWrapClassName: 'vertical-center-modal',
+            nzOnCancel: this.exist,
+            nzOnOk: this.exist
+          });
+          return;
+        }
+        this.login();
       });
-      return;
-    }
+  }
 
-    this.login();
-    // 获取 md 内容
-    // editor.getMarkdown()
-    // 解析 md 内容
-    // editormd.markdownToHTML('detailmarkdown', this.conf);
+  exist() {
+    XFrames.emitType(EmitType.EXIT);
   }
 
   // 退出应用
-  static exitApp() {
-    XFrames.emitType(EmitType.EXIT);
+  exitApp() {
+    this.modal.confirm({
+      nzTitle: '退出提示',
+      nzContent: '确定要退出当前应用吗?',
+      nzOkText: '退出',
+      nzCancelText: '取消',
+      nzOnOk: this.exist
+    });
   }
 
   // 新建文件夹
@@ -130,7 +151,7 @@ export class MainComponent implements OnInit {
           Storages.SESSION.user(data);
           this.init();
         },
-        onFail: MainComponent.exitApp
+        onFail: this.exitApp
       }));
   }
 
@@ -143,16 +164,25 @@ export class MainComponent implements OnInit {
         console.log(this.editor.getMarkdown());
       };
       this.editor = editormd('mdEditor', this.conf);
+      setTimeout(() => this.changeEditorModal(ONLY_PREVIEW), 1000);
     }, 0);
 
     // 加载子目录
-    this.reloadDirs();
+    Debugger.prod(() => this.reloadDirs());
   }
 
   // 显示添加目录弹出框
   showAddDirModal() {
     this.addModalVisible = true;
     this.addDirForm.reset();
+  }
+
+  // 显示修改目录名称弹出框
+  showModifyDirModal() {
+    let name = this.contextDir.name;
+    this.contextDir.oldName = name;
+    this.showAddDirModal();
+    this.addDirForm.controls.name.setValue(name);
   }
 
   // 关闭添加目录窗口
@@ -287,5 +317,83 @@ export class MainComponent implements OnInit {
         onOk: () => this.changeEditorModal(ONLY_PREVIEW),
         final: () => this.isLoading = false
       }));
+  }
+
+  // 更新目录名称
+  updateDirName() {
+    // 名称没有修改不用提交
+    let newlyName = this.addDirForm.value.name;
+    if (this.contextDir.oldName == newlyName) return;
+
+    this.isLoading = true;
+    let param = {id: this.contextDir.id, name: newlyName};
+    post(this.http, `/dir/updateName`, param, ...catchErr())
+      .subscribe(handleResult2({
+        notify: this.notify,
+        onOk: () => {
+          this.contextDir.name = this.contextDir.oldName;
+          this.addModalVisible = false;
+          this.reloadDirs();
+        },
+        final: () => {
+          this.isLoading = false;
+          this.closeContextMenu();
+          this.contextDir.oldName = null;
+        }
+      }));
+  }
+
+  // 处理目录修改事件
+  handleModifyDir() {
+    if (this.contextDir && isNotNullOrUndefined(this.contextDir.oldName))
+      this.updateDirName();
+    else
+      this.addDir();
+  }
+
+  // 删除目录
+  deleteDir() {
+    new Promise(resolve => {
+      this.modal.confirm({
+        nzTitle: '删除提示',
+        nzContent: `确定要删除目录 <b>${this.contextDir.name}</b> 吗?`,
+        nzOkText: '删除',
+        nzCancelText: '取消',
+        nzOnOk: () => resolve()
+      });
+    })
+      .then(() => new Promise(resolve => {
+        post(this.http, `/dir/del/${this.contextDir.id}`, null)
+          .subscribe(handleResult2({
+            notify: this.notify,
+            onOk: ({data}) => resolve(data)
+          }));
+      }))
+
+      // 要删除的目录包含子目录或者文件
+      .then(emptyDir => {
+        if (!emptyDir) {
+          return new Promise(resolve => {
+            this.modal.confirm({
+              nzTitle: '警告',
+              nzContent: `指定目录<b>${this.contextDir.name}</b>包含子目录或文件, 是否继续?`,
+              nzOkText: '强制删除',
+              nzCancelText: '取消',
+              nzOnOk: () => resolve()
+            });
+          });
+        }
+      })
+      .then(() => new Promise(resolve => {
+        post(this.http, `/dir/del/${this.contextDir.id}`, {force: true})
+          .subscribe(handleResult2({
+            notify: this.notify,
+            final: () => resolve()
+          }));
+      }))
+      .finally(() => {
+        this.closeContextMenu();
+      });
+
   }
 }

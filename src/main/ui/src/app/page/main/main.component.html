@@ -58,7 +58,7 @@
            (contextmenu)="dirContextMenu($event, dirContextMenus, dir)">
         <i nz-icon nzType="folder" nzTheme="outline" class="icon"></i>
         <span class="text flex-1">{{dir.name}}</span>
-        <span class="date">0</span>
+        <span class="date file-count">0</span>
       </div>
 
       <!--文件列表-->
@@ -103,7 +103,9 @@
   <ul nz-menu class="add-menu-box">
     <li nz-menu-item (click)="addFile()"><i nz-icon nzType="file-add" nzTheme="outline"></i>新建文件</li>
     <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
-    <li nz-menu-item (click)="alert(1)"><i nz-icon nzType="folder" nzTheme="outline"></i>修改名称</li>
+    <li nz-menu-item (click)="showModifyDirModal()"><i nz-icon nzType="edit" nzTheme="outline"></i>修改名称</li>
+    <li nz-menu-divider></li>
+    <li nz-menu-item (click)="deleteDir()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除目录</li>
   </ul>
 </nz-dropdown-menu>
 
@@ -112,7 +114,7 @@
           [nzTitle]="addFolderTitle"
           nzWrapClassName="vertical-center-modal"
           (nzOnCancel)="hideAddDirModal()"
-          (nzOnOk)="addDir()">
+          (nzOnOk)="handleModifyDir()">
   <div nz-form [formGroup]="addDirForm">
     <nz-form-item>
       <nz-form-label [nzSm]="6" [nzXs]="24" nzRequired>目录名</nz-form-label>
@@ -128,10 +130,15 @@
   </ng-template>
 </nz-modal>
 <ng-template #addFolderTitle>
-  <div><i nz-icon nzType="folder-add" nzTheme="outline"></i>新建目录</div>
+  <div><i nz-icon nzType="folder-add" nzTheme="outline"></i>目录名称</div>
 </ng-template>
 
 <!--上下文菜单遮罩-->
-<div *ngIf="showContextMenu" class="absolute full-parent context-menu-mask"
+<div *ngIf="showContextMenu" class="absolute full-parent mask"
      [class.hidden]="!showContextMenu"
      (click)="closeContextMenu()"></div>
+
+<!--加载中-->
+<div *ngIf="isLoading" class="absolute full-parent mask flex-h flex-center loading-mask">
+  <nz-spin nzSimple nzTip="Loading..."></nz-spin>
+</div>

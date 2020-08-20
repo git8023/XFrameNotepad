@@ -43,4 +43,30 @@ public interface DirectoryService {
      * @return 目录信息
      */
     Directory getById(int id);
+
+    /**
+     * 更新目录名称
+     *
+     * @param id        目录ID
+     * @param newlyName 新名称
+     * @param userId    用户ID
+     */
+    void updateName(int id, String newlyName, int userId);
+
+    /**
+     * 删除指定目录
+     *
+     * @param id     目录ID
+     * @param userId 当前用户
+     * @return true-删除成功, false-目录不为空
+     */
+    boolean delete(int id, int userId);
+
+    /**
+     * 强制删除指定目录下所有文件和文件夹
+     *
+     * @param id     目录ID
+     * @param userId 当前用户
+     */
+    void deleteForce(int id, int userId);
 }
