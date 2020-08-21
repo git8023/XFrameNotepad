@@ -44,13 +44,23 @@ public interface DirectoryMapper {
             @Param("parentId") Integer parentId);
 
     /**
-     * 指定目录删除所有子目录和自身
+     * 指定路径(前缀)删除目录(子目录)
      *
-     * @param dirId 目录ID
+     * @param userId 用户ID
+     * @param path   路径
      * @return 数据库受影响行数
      */
     @Delete({
-            ""
+            "DELETE FROM ",
+            "    `directory`",
+            "WHERE ",
+            "    `directory`.user_id = #{userId}",
+            "    AND (",
+            "        `directory`.path = #{path}",
+            "        OR `directory`.path LIKE CONCAT(#{path}, '/%')",
+            "    )"
     })
-    int deleteAllByDir(@Param("dirId") int dirId);
+    int deleteAllByPath(
+            @Param("userId") int userId,
+            @Param("path") String path);
 }

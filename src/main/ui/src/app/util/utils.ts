@@ -555,15 +555,15 @@ export function handleError<T>(operation = 'operation', result?: T) {
 /**
  * 创建HttpParams对象
  * @param {object} param 参数
- * @param {boolean} simpleProps=true true-将param中所有属性展开为一级属性
+ * @param {boolean} expandProps=true true-将param中所有属性展开为一级属性
  * @return {HttpParams}
  */
-export function createHttpParams(param: object, simpleProps = true): HttpParams {
+export function createHttpParams(param: object, expandProps = true): HttpParams {
   let hp = new HttpParams();
   if (!param)
     return hp;
 
-  if (simpleProps)
+  if (expandProps)
     param = extJson(param);
   eachO(param, (v, k) => {
     if (!isNullOrUndefined(v))

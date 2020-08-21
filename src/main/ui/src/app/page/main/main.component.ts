@@ -19,6 +19,7 @@ import {EmitType, XFrames} from "../../util/xframes";
 import {Notepad} from '../../model/entity/Notepad';
 import {isNullOrUndefined} from 'util';
 import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
+import {reject} from 'q';
 
 declare var editormd: any;
 
@@ -64,7 +65,7 @@ export class MainComponent implements OnInit {
   // 加载中?
   isLoading = false;
   // 打开的记事本
-  openedNotepad: Notepad = {title: ''};
+  openedNotepad: Notepad = {id: -1, title: ''};
   // 切换编辑器模式
   editorModel: EditorModel = 0;
   // 目录名称校验器
@@ -157,21 +158,27 @@ export class MainComponent implements OnInit {
 
   // 初始化
   private init() {
+    this.resetEditorMd();
+
+    // 加载子目录
+    Debugger.prod(() => this.reloadDirs());
+  }
+
+  // 重置 editormd 插件
+  private resetEditorMd() {
     setTimeout(() => {
       // 初始化 editormd 插件
       this.conf.markdown = '<span>点击左侧选择文件...</span>';
       this.conf.onchange = () => {
         console.log(this.editor.getMarkdown());
       };
-      this.editor = editormd('mdEditor', this.conf);
+      if (!this.editor)
+        this.editor = editormd('mdEditor', this.conf);
       setTimeout(() => this.changeEditorModal(ONLY_PREVIEW), 1000);
     }, 0);
-
-    // 加载子目录
-    Debugger.prod(() => this.reloadDirs());
   }
 
-  // 显示添加目录弹出框
+// 显示添加目录弹出框
   showAddDirModal() {
     this.addModalVisible = true;
     this.addDirForm.reset();
@@ -359,27 +366,35 @@ export class MainComponent implements OnInit {
         nzContent: `确定要删除目录 <b>${this.contextDir.name}</b> 吗?`,
         nzOkText: '删除',
         nzCancelText: '取消',
-        nzOnOk: () => resolve()
+        nzOnOk: () => resolve(),
+        nzOnCancel: () => reject()
       });
     })
-      .then(() => new Promise(resolve => {
-        post(this.http, `/dir/del/${this.contextDir.id}`, null)
+      .then(() => new Promise((resolve, reject) => {
+        post(this.http, `/dir/del/${this.contextDir.id}`, {force: false})
           .subscribe(handleResult2({
             notify: this.notify,
-            onOk: ({data}) => resolve(data)
+            onOk: ({data}) => {
+              // 删除成功, 结束调用链
+              if (data) reject();
+              // 删除失败, 询问是否强制删除?
+              else resolve(data);
+            },
+            final: ({flag}) => !flag && reject()
           }));
       }))
 
       // 要删除的目录包含子目录或者文件
       .then(emptyDir => {
         if (!emptyDir) {
-          return new Promise(resolve => {
+          return new Promise((resolve, reject) => {
             this.modal.confirm({
               nzTitle: '警告',
               nzContent: `指定目录<b>${this.contextDir.name}</b>包含子目录或文件, 是否继续?`,
               nzOkText: '强制删除',
               nzCancelText: '取消',
-              nzOnOk: () => resolve()
+              nzOnOk: () => resolve(),
+              nzOnCancel: () => reject()
             });
           });
         }
@@ -393,7 +408,24 @@ export class MainComponent implements OnInit {
       }))
       .finally(() => {
         this.closeContextMenu();
+        this.reloadDirs();
+        this.checkOpenedNotepadExist();
       });
 
+  }
+
+  // 检查当前打开的文件是否还存在
+  // 如果当前文件不存在需要把 editormd 中的内容重置
+  private checkOpenedNotepadExist() {
+    if (!this.openedNotepad || -1 == this.openedNotepad.id)
+      return;
+
+    this.isLoading = true;
+    post(this.http, `/notepad/exist/${this.openedNotepad.id}`)
+      .subscribe(handleResult2({
+        notify: this.notify,
+        onOk: ({data}) => !data && this.resetEditorMd(),
+        final: () => this.isLoading = false
+      }))
   }
 }

@@ -88,4 +88,16 @@ public class NotepadServiceImpl implements NotepadService {
         old.setSize(content.toCharArray().length);
         notepadRepository.JPA.save(old);
     }
+
+    @Override
+    public boolean checkExist(int userId, int id) {
+        Notepad notepad = notepadRepository.JPA.findById(id);
+        if (null == notepad)
+            return false;
+
+        if (notepad.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        return true;
+    }
 }

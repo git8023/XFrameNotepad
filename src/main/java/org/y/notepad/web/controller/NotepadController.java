@@ -64,4 +64,17 @@ public class NotepadController {
         notepadService.update(notepad);
         return Result.success();
     }
+
+    /**
+     * 检查指定记事本是否还存在
+     *
+     * @param id 记事本ID
+     */
+    @RequestMapping("/exist/{id}")
+    public Result exist(@PathVariable int id) {
+        User user = WebUtil.getUser();
+        int userId = user.getUserId();
+        boolean isExist = notepadService.checkExist(userId, id);
+        return Result.data(isExist);
+    }
 }

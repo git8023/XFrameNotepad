@@ -129,11 +129,12 @@ public class DirectoryServiceImpl implements DirectoryService {
         if (dir.getCreator().getId() != userId)
             ErrorCode.ILLEGAL_OPERATION.breakOff();
 
-        // 删除所有目录
-        directoryRepository.MAPPER.deleteAllByDir(id);
-
         // 删除所有文件
-        notepadRepository.MAPPER.deleteAllByDir(id);
+        String path = dir.getPath();
+        notepadRepository.MAPPER.deleteAllByParentPath(userId, path);
+
+        // 删除所有目录
+        directoryRepository.MAPPER.deleteAllByPath(userId, path);
     }
 
     /**
@@ -145,7 +146,7 @@ public class DirectoryServiceImpl implements DirectoryService {
     private String getFullPath(Directory dir) {
         Directory parent = dir.getParent();
         String parentPath = null != parent ? parent.getPath() : "";
-        return "/" + dir.getName() + parentPath;
+        return parentPath + "/" + dir.getName();
 
     }
 }

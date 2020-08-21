@@ -29,7 +29,17 @@ public interface NotepadService {
 
     /**
      * 更新记事本
+     *
      * @param notepad 记事本数据
      */
     void update(Notepad notepad);
+
+    /**
+     * 检查指定记事本是否存在
+     *
+     * @param userId 用户ID
+     * @param id     记事本ID
+     * @return true-存在, false-不存在
+     */
+    boolean checkExist(int userId, int id);
 }
