@@ -19,7 +19,6 @@ import {EmitType, XFrames} from "../../util/xframes";
 import {Notepad} from '../../model/entity/Notepad';
 import {isNullOrUndefined} from 'util';
 import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
-import {reject} from 'q';
 
 declare var editormd: any;
 
@@ -360,7 +359,7 @@ export class MainComponent implements OnInit {
 
   // 删除目录
   deleteDir() {
-    new Promise(resolve => {
+    new Promise((resolve, reject) => {
       this.modal.confirm({
         nzTitle: '删除提示',
         nzContent: `确定要删除目录 <b>${this.contextDir.name}</b> 吗?`,

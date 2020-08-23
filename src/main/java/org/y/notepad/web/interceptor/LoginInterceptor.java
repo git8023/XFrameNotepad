@@ -1,9 +1,9 @@
 package org.y.notepad.web.interceptor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.y.notepad.model.entity.User;
+import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.service.UserService;
 import org.y.notepad.util.Constants;
 import org.y.notepad.web.util.WebUtil;
@@ -30,7 +30,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 
         Integer userId = WebUtil.getSession(Constants.KEY_OF_SESSION_USER_ID);
         if (null == userId)
-            return true;
+            ErrorCode.NOT_LOGIN.breakOff();
 
         User user = WebUtil.getUser();
         if (null == user) {
