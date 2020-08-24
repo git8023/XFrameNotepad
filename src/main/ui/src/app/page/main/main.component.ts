@@ -1,7 +1,7 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {EditorConfig} from "../../cfg/editor-config";
 import {
-  catchErr,
+  catchErr, clone,
   dateFmt,
   Debugger,
   eachA,
@@ -17,7 +17,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Directory} from "../../model/entity/Directory";
 import {EmitType, XFrames} from "../../util/xframes";
 import {Notepad} from '../../model/entity/Notepad';
-import {isNullOrUndefined} from 'util';
+import {isFunction, isNullOrUndefined} from 'util';
 import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
 
 declare var editormd: any;
@@ -41,34 +41,61 @@ export class MainComponent implements OnInit {
   @ViewChild('content', {static: true, read: ElementRef}) content: ElementRef;
   // markdown编辑器配置
   conf = new EditorConfig();
+
   // markdown编辑器实例
   editor: any;
+
   // 新建文件/目录显示?
   addModalVisible = false;
+
   // 添加目录表单
   addDirForm: FormGroup;
+
   // 目录列表
   dirs: Array<Directory> = [
     {id: 1, name: '目录1'}
   ];
+
   // 文件列表
   notepads: Array<Notepad> = [
-    {id: 1, content: '123<b>粗体</b>哈哈'}
+    {id: 1, content: '123<b>粗体</b>哈哈', title:'的房间昆德拉解放开绿灯撒'}
   ];
+
   // 当前目录
   currentDir: Directory = Directory.ROOT;
+
   // 上下文菜单目录
   contextDir: Directory;
+
   // 上下文菜单状态
+  // true-打开的
+  // false-关闭的
   showContextMenu = false;
-  // 加载中?
+
+  // 加载中
+  // true-显示加载状态
+  // false-隐藏加载状态
   isLoading = false;
+
   // 打开的记事本
-  openedNotepad: Notepad = {id: -1, title: ''};
+  openedNotepad: Notepad = clone(Notepad.EMPTY);
+
   // 切换编辑器模式
   editorModel: EditorModel = 0;
+
   // 目录名称校验器
   dirNameValidator = regexpValidator({regex: /^[a-zA-Z\u4e00-\u9fa5_$0-9]{2,10}$/, truth: false});
+
+  // 激活右键菜单的记事本
+  private contextNotepad: Notepad;
+
+  // 记事本移动到其他目录弹出框
+  // true-显示
+  // false-隐藏
+  notepadMovingModalVisible = false;
+
+  // 移动中选中的目录
+  chooseDir: Directory;
 
   constructor(
     private http: HttpClient,
@@ -166,18 +193,21 @@ export class MainComponent implements OnInit {
   // 重置 editormd 插件
   private resetEditorMd() {
     setTimeout(() => {
+      this.openedNotepad = clone(Notepad.EMPTY);
       // 初始化 editormd 插件
-      this.conf.markdown = '<span>点击左侧选择文件...</span>';
+      this.conf.markdown = '点击左侧选择文件...';
       this.conf.onchange = () => {
         console.log(this.editor.getMarkdown());
       };
       if (!this.editor)
         this.editor = editormd('mdEditor', this.conf);
+      else
+        this.editor.setMarkdown(this.conf.markdown);
       setTimeout(() => this.changeEditorModal(ONLY_PREVIEW), 1000);
     }, 0);
   }
 
-// 显示添加目录弹出框
+  // 显示添加目录弹出框
   showAddDirModal() {
     this.addModalVisible = true;
     this.addDirForm.reset();
@@ -241,11 +271,9 @@ export class MainComponent implements OnInit {
 
   // 设置父级目录
   setParent(parent: Directory) {
-    if (parent.id != this.currentDir.id) {
-      this.currentDir = parent;
-      XFrames.emitType(EmitType.SUBHEAD, parent.path);
-      this.reloadDirs();
-    }
+    this.currentDir = parent || Directory.ROOT;
+    XFrames.emitType(EmitType.SUBHEAD, this.currentDir.path);
+    this.reloadDirs();
   }
 
   // 返回上级目录
@@ -265,6 +293,7 @@ export class MainComponent implements OnInit {
   closeContextMenu() {
     this.nzContextMenuService.close();
     this.contextDir = null;
+    this.contextNotepad = null;
     this.showContextMenu = false;
   }
 
@@ -284,21 +313,31 @@ export class MainComponent implements OnInit {
   openNotepad(notepad: Notepad) {
     this.openedNotepad = notepad;
     this.editor.setMarkdown(notepad.content);
-    setTimeout(() => this.editor.setMarkdown(notepad.content));
-    if (!this.editor.state.preview)
-      this.editor.previewing();
+    this.changeEditorModal(ONLY_PREVIEW);
   }
 
   // 切换编辑器模式
+  // 1. 还原到初始状态
+  // 2. 切换到目标状态
   changeEditorModal(editorModel?: EditorModel) {
+    let initOpts = {
+      watching: state => state && this.editor.watch(),
+      loaded: state => state,
+      preview: state => state && this.editor.previewing(),
+      fullscreen: state => state && this.editor.previewed()
+    };
+    eachA<boolean>(this.editor.state, (state, key) => {
+      let fn = initOpts[key];
+      if (isFunction(fn))
+        fn(state);
+    });
+
     this.editorModel = isNullOrUndefined(editorModel) ? <EditorModel>(++this.editorModel % 3) : editorModel;
     switch (this.editorModel) {
-      case  EDIT_PREVIEW:
-        // this.editor.show();
+      case EDIT_PREVIEW:
         this.editor.watch();
         break;
       case ONLY_PREVIEW:
-        // this.editor.show();
         this.editor.previewing();
         setTimeout(() => this.editor.setMarkdown(this.editor.getMarkdown()), 200);
         break;
@@ -343,8 +382,8 @@ export class MainComponent implements OnInit {
         },
         final: () => {
           this.isLoading = false;
-          this.closeContextMenu();
           this.contextDir.oldName = null;
+          this.closeContextMenu();
         }
       }));
   }
@@ -425,6 +464,29 @@ export class MainComponent implements OnInit {
         notify: this.notify,
         onOk: ({data}) => !data && this.resetEditorMd(),
         final: () => this.isLoading = false
-      }))
+      }));
+  }
+
+  // 打开记事本右键菜单
+  notepadContextMenu($event, menu, notepad: Notepad) {
+    this.contextNotepad = notepad;
+    this.showContextMenu = true;
+    this.nzContextMenuService.create($event, menu);
+  }
+
+  // TODO 分享
+  shareNotepad() {
+  }
+
+  // 移动到其他目录
+  moveToDir() {
+    console.log(this.contextNotepad);
+    this.notepadMovingModalVisible = true;
+  }
+
+  // 隐藏记事本"移动到"弹出框
+  hideNotepadMoveModal() {
+    this.notepadMovingModalVisible = false;
+    this.closeContextMenu();
   }
 }

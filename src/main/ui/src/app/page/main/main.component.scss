@@ -222,6 +222,24 @@
   }
 }
 
+.moving-modal {
+  margin: -24px;
+
+  .moving-title {
+    padding: 1rem;
+  }
+
+  .moving-preview {
+    padding: .25rem;
+    border: 1px solid #aaa;
+    margin: 0 1rem;
+  }
+
+  .moving-dirs {
+    padding: 1rem;
+  }
+}
+
 :host ::ng-deep .main-menus .add [nz-submenu] {
   position: absolute;
   top: 0;

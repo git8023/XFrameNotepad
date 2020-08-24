@@ -10,4 +10,6 @@ export class Notepad {
   lastModified?: Date | any;
   size?: number;
   type?: string;
+
+  static EMPTY: Notepad = {id: -1, title: '', content: ''};
 }

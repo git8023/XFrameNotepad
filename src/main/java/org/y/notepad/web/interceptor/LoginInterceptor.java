@@ -29,8 +29,11 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         // response.setHeader("P3P","CP=\"IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT\"");
 
         Integer userId = WebUtil.getSession(Constants.KEY_OF_SESSION_USER_ID);
-        if (null == userId)
-            ErrorCode.NOT_LOGIN.breakOff();
+        if (null == userId){
+            // ErrorCode.NOT_LOGIN.breakOff();
+            // 如果当前会话中没有用户ID, 直接跳过
+            return true;
+        }
 
         User user = WebUtil.getUser();
         if (null == user) {

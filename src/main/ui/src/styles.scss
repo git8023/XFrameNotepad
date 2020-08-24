@@ -92,10 +92,18 @@ body {
 .flex-v {
   display: flex;
   flex-direction: column;
+
+  &.flex-center {
+    justify-content: normal;
+  }
 }
 
 .flex-1 {
   flex: 1;
+}
+
+.padding-left-1 {
+  padding-left: 1rem;
 }
 
 //</editor-fold>

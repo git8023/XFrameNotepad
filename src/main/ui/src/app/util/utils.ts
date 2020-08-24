@@ -18,9 +18,7 @@ import {OperatorFunction} from "rxjs";
  * @return {any}
  */
 export function clone(o: any) {
-  if (isObject(o))
-    return JSON.parse(JSON.stringify(o));
-  return o;
+  return JSON.parse(JSON.stringify(o));
 }
 
 /**
@@ -163,12 +161,12 @@ export function keysO(o: any): Array<string> {
 /**
  * 数组遍历
  * @param {Array<T>} a
- * @param {((e: T, i?: number) => boolean) | void | any} f
+ * @param {((e: T, i?: number|string) => boolean) | void | any} f
  */
-export function eachA<T>(a: Array<T>, f?: (((e: T, i?: number) => boolean) | void | any)) {
-  if (!isFunction(f)) f = _ => true;
+export function eachA<T>(a: Array<T>, f?: (((e: T, i?: number | string) => boolean) | void | any)) {
+  if (!isFunction(f)) f = () => true;
   for (let i = 0, len = a.length; i < len; i++)
-    if (false === f(a[i], i))
+    if (false === f(a[i] as T, i))
       break;
   return a;
 }

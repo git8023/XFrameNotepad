@@ -62,11 +62,13 @@
       </div>
 
       <!--文件列表-->
-      <div class="path flex-h flex-center" *ngFor="let file of notepads"
-           (click)="openNotepad(file)" [class.opened]="openedNotepad == file">
+      <div class="path flex-h flex-center" *ngFor="let notepad of notepads"
+           (click)="openNotepad(notepad)" [class.opened]="openedNotepad == notepad"
+           [class.context-open]="notepad == contextNotepad"
+           (contextmenu)="notepadContextMenu($event, notepadContextMenus, notepad)">
         <i nz-icon nzType="file-text" nzTheme="outline" class="icon"></i>
-        <span class="text flex-1">{{file.title}}</span>
-        <span class="date">{{file.lastModified}}</span>
+        <span class="text flex-1">{{notepad.title}}</span>
+        <span class="date">{{notepad.lastModified}}</span>
       </div>
 
     </div>
@@ -77,7 +79,7 @@
     <div class="flex-1 full-height overflow-auto flex-v" #content>
 
       <div class="title-editor flex-h flex-center">
-        <input class="flex-1" [(ngModel)]="openedNotepad!.title"/>
+        <input class="flex-1" [(ngModel)]="openedNotepad.title"/>
       </div>
 
       <div class="md-editor flex-1" id="mdEditor">
@@ -105,7 +107,17 @@
     <li nz-menu-item (click)="showAddDirModal()"><i nz-icon nzType="folder" nzTheme="outline"></i>新建文件夹</li>
     <li nz-menu-item (click)="showModifyDirModal()"><i nz-icon nzType="edit" nzTheme="outline"></i>修改名称</li>
     <li nz-menu-divider></li>
-    <li nz-menu-item (click)="deleteDir()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除目录</li>
+    <li nz-menu-item (click)="deleteDir()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除</li>
+  </ul>
+</nz-dropdown-menu>
+
+<!--记事本右键菜单-->
+<nz-dropdown-menu #notepadContextMenus>
+  <ul nz-menu class="add-menu-box">
+    <li nz-menu-item (click)="moveToDir()"><i nz-icon nzType="database" nzTheme="outline"></i>移动到</li>
+    <li nz-menu-item (click)="shareNotepad()"><i nz-icon nzType="share-alt" nzTheme="outline"></i>分享</li>
+    <li nz-menu-divider></li>
+    <li nz-menu-item (click)="deleteDir()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除</li>
   </ul>
 </nz-dropdown-menu>
 
@@ -142,3 +154,42 @@
 <div *ngIf="isLoading" class="absolute full-parent mask flex-h flex-center loading-mask">
   <nz-spin nzSimple nzTip="Loading..."></nz-spin>
 </div>
+
+<!--记事本移动到其他目录-->
+<nz-modal [(nzVisible)]="notepadMovingModalVisible"
+          [nzTitle]="notepadMoveToOtherDirTitle"
+          nzWrapClassName="vertical-center-modal"
+          (nzOnCancel)="hideNotepadMoveModal()"
+          (nzOnOk)="handleModifyDir()">
+
+  <div class="moving-modal">
+    <div class="flex-h flex-center moving-title">
+      <i nz-icon nzType="file-text" nzTheme="outline"></i>
+      <div class="flex-1 padding-left-1">{{contextNotepad?contextNotepad.title:''}}</div>
+    </div>
+
+    <div class="moving-preview">
+      移动到: {{chooseDir?chooseDir.path:''}}
+    </div>
+
+    <div class="moving-dirs">
+      <ul>
+        <li>
+          <div>  目录1</div>
+
+          <ul>
+            <li>目录1-1</li>
+            <li>目录1-2</li>
+            <li>目录1-3</li>
+          </ul>
+
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</nz-modal>
+<ng-template #notepadMoveToOtherDirTitle>
+  <!--<div><i nz-icon nzType="folder-add" nzTheme="outline"></i>目录名称</div>-->
+  <div><i class="fa fa-ofrecycle"></i> 移动到</div>
+</ng-template>
