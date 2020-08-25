@@ -42,4 +42,13 @@ public interface NotepadService {
      * @return true-存在, false-不存在
      */
     boolean checkExist(int userId, int id);
+
+    /**
+     * 记事本移动到指定目录
+     *
+     * @param id     记事本ID
+     * @param dirId  目标目录ID
+     * @param userId 当前用户ID
+     */
+    void moveToDir(int id, int dirId, int userId);
 }

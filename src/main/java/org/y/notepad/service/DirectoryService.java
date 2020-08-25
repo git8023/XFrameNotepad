@@ -69,4 +69,12 @@ public interface DirectoryService {
      * @param userId 当前用户
      */
     void deleteForce(int id, int userId);
+
+    /**
+     * 获取指定用户所有目录
+     *
+     * @param userId 当前用户
+     * @return 目录列表
+     */
+    List<Directory> getAllDirs(int userId);
 }

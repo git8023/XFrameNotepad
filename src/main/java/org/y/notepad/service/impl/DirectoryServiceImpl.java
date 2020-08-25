@@ -33,8 +33,7 @@ public class DirectoryServiceImpl implements DirectoryService {
     public DirectoryServiceImpl(
             DirectoryRepository directoryRepository,
             UserRepository userRepository,
-            NotepadRepository notepadRepository
-    ) {
+            NotepadRepository notepadRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
         this.notepadRepository = notepadRepository;
@@ -135,6 +134,20 @@ public class DirectoryServiceImpl implements DirectoryService {
 
         // 删除所有目录
         directoryRepository.MAPPER.deleteAllByPath(userId, path);
+    }
+
+    @Override
+    public List<Directory> getAllDirs(int userId) {
+        User user = userRepository.JPA.findById(userId);
+        List<Directory> list = directoryRepository.JPA.findAllByCreator(user);
+        list.forEach(dir -> {
+            dir.setCreator(null);
+            Directory parent = dir.getParent();
+            if (null != parent) {
+                dir.setParent(new Directory(parent.getId()));
+            }
+        });
+        return list;
     }
 
     /**

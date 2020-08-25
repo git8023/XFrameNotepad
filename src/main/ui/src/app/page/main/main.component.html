@@ -114,7 +114,7 @@
 <!--记事本右键菜单-->
 <nz-dropdown-menu #notepadContextMenus>
   <ul nz-menu class="add-menu-box">
-    <li nz-menu-item (click)="moveToDir()"><i nz-icon nzType="database" nzTheme="outline"></i>移动到</li>
+    <li nz-menu-item (click)="notepadMoveToDir()"><i nz-icon nzType="database" nzTheme="outline"></i>移动到</li>
     <li nz-menu-item (click)="shareNotepad()"><i nz-icon nzType="share-alt" nzTheme="outline"></i>分享</li>
     <li nz-menu-divider></li>
     <li nz-menu-item (click)="deleteDir()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除</li>
@@ -158,38 +158,30 @@
 <!--记事本移动到其他目录-->
 <nz-modal [(nzVisible)]="notepadMovingModalVisible"
           [nzTitle]="notepadMoveToOtherDirTitle"
-          nzWrapClassName="vertical-center-modal"
           (nzOnCancel)="hideNotepadMoveModal()"
-          (nzOnOk)="handleModifyDir()">
+          (nzOnOk)="submitNotepadMoveModal()">
 
   <div class="moving-modal">
     <div class="flex-h flex-center moving-title">
       <i nz-icon nzType="file-text" nzTheme="outline"></i>
-      <div class="flex-1 padding-left-1">{{contextNotepad?contextNotepad.title:''}}</div>
+      <div class="flex-1">&nbsp;{{contextNotepad?contextNotepad.title:''}}</div>
     </div>
 
-    <div class="moving-preview">
-      移动到: {{chooseDir?chooseDir.path:''}}
-    </div>
-
-    <div class="moving-dirs">
-      <ul>
-        <li>
-          <div>  目录1</div>
-
-          <ul>
-            <li>目录1-1</li>
-            <li>目录1-2</li>
-            <li>目录1-3</li>
-          </ul>
-
-        </li>
-      </ul>
+    <div class="moving-preview flex-h flex-center">
+      <span>移动到 - &nbsp;</span>
+      <nz-tree-select
+        style="width: 250px"
+        nzPlaceHolder="请选择文件夹"
+        class="flex-1"
+        [(ngModel)]="chooseDirId"
+        [nzDropdownMatchSelectWidth]="true"
+        [nzDropdownStyle]="{ 'max-height': '300px' }"
+        [nzNodes]="allDirs"
+        [nzAsyncData]="true"></nz-tree-select>
     </div>
   </div>
 
 </nz-modal>
 <ng-template #notepadMoveToOtherDirTitle>
-  <!--<div><i nz-icon nzType="folder-add" nzTheme="outline"></i>目录名称</div>-->
-  <div><i class="fa fa-ofrecycle"></i> 移动到</div>
+  <div><i class="fa fa-ofrecycle"></i> 移动记事本到目录</div>
 </ng-template>

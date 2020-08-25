@@ -1,7 +1,8 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {EditorConfig} from "../../cfg/editor-config";
 import {
-  catchErr, clone,
+  catchErr,
+  clone,
   dateFmt,
   Debugger,
   eachA,
@@ -58,7 +59,7 @@ export class MainComponent implements OnInit {
 
   // 文件列表
   notepads: Array<Notepad> = [
-    {id: 1, content: '123<b>粗体</b>哈哈', title:'的房间昆德拉解放开绿灯撒'}
+    {id: 1, content: '123<b>粗体</b>哈哈', title: '的房间昆德拉解放开绿灯撒'}
   ];
 
   // 当前目录
@@ -95,7 +96,10 @@ export class MainComponent implements OnInit {
   notepadMovingModalVisible = false;
 
   // 移动中选中的目录
-  chooseDir: Directory;
+  chooseDirId: number = Directory.ROOT.id;
+
+  // 当前用户下所有的目录
+  allDirs = [];
 
   constructor(
     private http: HttpClient,
@@ -104,7 +108,6 @@ export class MainComponent implements OnInit {
     private fb: FormBuilder,
     private nzContextMenuService: NzContextMenuService,
   ) {
-    window['x'] = this;
   }
 
   ngOnInit(): void {
@@ -478,15 +481,69 @@ export class MainComponent implements OnInit {
   shareNotepad() {
   }
 
-  // 移动到其他目录
-  moveToDir() {
-    console.log(this.contextNotepad);
-    this.notepadMovingModalVisible = true;
+  // 记事本移动到其他目录
+  notepadMoveToDir() {
+    this.isLoading = true;
+    this.chooseDirId = (this.contextNotepad.dir || Directory.ROOT).id;
+    post(this.http, `/dir/all`, null)
+      .subscribe(handleResult2({
+        notify: this.notify,
+        onOk: ({data}) => {
+          this.notepadMovingModalVisible = true;
+          let root = clone(Directory.ROOT);
+
+          // 获取所有根节点
+          data = data || [];
+          let roots = data.filter(dir => !dir.parent);
+          let nodeMap = {};
+          eachA(data, dir => {
+            nodeMap[dir.id] = dir;
+            dir.title = dir.name;
+            dir.key = dir.id;
+          });
+
+          // 过滤后剩余节点必定包含父节点
+          data
+            .filter(dir => !!dir.parent)
+            .forEach((dir: Directory) => {
+              let children = (nodeMap[dir.parent.id].children || []);
+              children.push(dir);
+              nodeMap[dir.parent.id].children = children;
+            });
+
+          // 标记叶子节点
+          eachA(data, dir => {
+            dir.isLeaf = !dir.children;
+          });
+
+          root.children = roots;
+          root.expanded = true;
+          root.title = '我的文件夹';
+          root.key = Directory.ROOT.id;
+          this.allDirs = [root];
+        },
+        final: () => this.isLoading = false
+      }));
   }
 
   // 隐藏记事本"移动到"弹出框
   hideNotepadMoveModal() {
     this.notepadMovingModalVisible = false;
     this.closeContextMenu();
+  }
+
+  // 提交记事本"移动到"
+  submitNotepadMoveModal() {
+    this.notepadMovingModalVisible = false;
+    this.isLoading = true;
+    post(this.http, `/notepad/mv2Dir/${this.contextNotepad.id}/${this.chooseDirId}`)
+      .subscribe(handleResult2({
+        onOk: () => this.setParent({id: this.chooseDirId}),
+        final: () => {
+          this.isLoading = false;
+          this.chooseDirId = Directory.ROOT.id;
+          this.closeContextMenu();
+        }
+      }));
   }
 }

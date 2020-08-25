@@ -8,6 +8,7 @@ import org.y.notepad.model.entity.Notepad;
 import org.y.notepad.model.entity.User;
 import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.model.enu.NotepadType;
+import org.y.notepad.repository.DirectoryRepository;
 import org.y.notepad.repository.NotepadRepository;
 import org.y.notepad.service.DirectoryService;
 import org.y.notepad.service.NotepadService;
@@ -26,24 +27,23 @@ public class NotepadServiceImpl implements NotepadService {
 
     private final NotepadRepository notepadRepository;
     private final UserService userService;
-    private final DirectoryService directoryService;
+    private final DirectoryRepository directoryRepository;
 
     @Autowired
     public NotepadServiceImpl(
             NotepadRepository notepadRepository,
             UserService userService,
-            DirectoryService directoryService
-    ) {
+            DirectoryRepository directoryRepository) {
         this.notepadRepository = notepadRepository;
         this.userService = userService;
-        this.directoryService = directoryService;
+        this.directoryRepository = directoryRepository;
     }
 
     @Transactional
     @Override
     public Notepad createBlank(int dirId, int userId) {
         User creator = userService.getById(userId);
-        Directory dir = directoryService.getById(dirId);
+        Directory dir = directoryRepository.JPA.findById(dirId);
 
         // 已经存在了空记事本
         List<Notepad> notepads = notepadRepository.JPA.findAllByCreatorAndTypeAndDir(creator, NotepadType.EMPTY, dir);
@@ -65,7 +65,7 @@ public class NotepadServiceImpl implements NotepadService {
     @Override
     public List<Notepad> listByDir(int dirId, int userId) {
         User creator = userService.getById(userId);
-        Directory dir = directoryService.getById(dirId);
+        Directory dir = directoryRepository.JPA.findById(dirId);
         return notepadRepository.JPA.findAllByCreatorAndDir(creator, dir);
     }
 
@@ -99,5 +99,22 @@ public class NotepadServiceImpl implements NotepadService {
             ErrorCode.ILLEGAL_OPERATION.breakOff();
 
         return true;
+    }
+
+    @Override
+    public void moveToDir(int id, int dirId, int userId) {
+        Notepad notepad = notepadRepository.JPA.findById(id);
+        if (notepad.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        // 记事本已经在当前目录下
+        Directory dir = notepad.getDir();
+        if (null == dir && -1 == dirId)
+            return;
+
+        Directory targetDir = directoryRepository.JPA.findById(dirId);
+        notepad.setDir(targetDir);
+        notepadRepository.JPA.save(notepad);
+
     }
 }

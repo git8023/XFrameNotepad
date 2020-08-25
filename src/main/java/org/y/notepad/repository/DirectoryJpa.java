@@ -3,6 +3,7 @@ package org.y.notepad.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.y.notepad.model.entity.Directory;
+import org.y.notepad.model.entity.User;
 
 import java.util.List;
 
@@ -26,10 +27,11 @@ public interface DirectoryJpa extends JpaRepository<Directory, Integer> {
     Directory findById(int id);
 
     /**
-     * 指定父级目录
-     * @param parent
-     * @return
+     * 指定创建者获取所有目录
+     *
+     * @param creator 创建者
+     * @return 目录列表
      */
-    List<Directory> findAllByParent(Directory parent);
+    List<Directory> findAllByCreator(User creator);
 
 }

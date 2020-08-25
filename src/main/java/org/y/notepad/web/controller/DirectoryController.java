@@ -98,4 +98,15 @@ public class DirectoryController {
         return Result.data(ret);
     }
 
+    /**
+     * 获取当前用户的所有目录(排除根目录)
+     */
+    @RequestMapping("/all")
+    public Result allDirs() {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        List<Directory> dirs = directoryService.getAllDirs(userId);
+        return Result.data(dirs);
+    }
+
 }

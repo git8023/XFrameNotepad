@@ -77,4 +77,18 @@ public class NotepadController {
         boolean isExist = notepadService.checkExist(userId, id);
         return Result.data(isExist);
     }
+
+    /**
+     * 记事本移动到指定目录
+     * @param id 记事本ID
+     * @param dirId 目标目录ID
+     */
+    @RequestMapping("/mv2Dir/{id}/{dirId}")
+    public Result moveToDir(@PathVariable int id, @PathVariable int dirId) {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        notepadService.moveToDir(id, dirId, userId);
+        return Result.success();
+    }
+
 }
