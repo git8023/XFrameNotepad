@@ -10,7 +10,6 @@ import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.model.enu.NotepadType;
 import org.y.notepad.repository.DirectoryRepository;
 import org.y.notepad.repository.NotepadRepository;
-import org.y.notepad.service.DirectoryService;
 import org.y.notepad.service.NotepadService;
 import org.y.notepad.service.UserService;
 import org.y.notepad.util.CollectionUtil;
@@ -21,9 +20,6 @@ import java.util.Objects;
 
 @Service
 public class NotepadServiceImpl implements NotepadService {
-
-    // private static final ThreadLocal<User> USER = new ThreadLocal<>();
-    // private static final ThreadLocal<Directory> DIRECTORY = new ThreadLocal<>();
 
     private final NotepadRepository notepadRepository;
     private final UserService userService;
@@ -102,19 +98,28 @@ public class NotepadServiceImpl implements NotepadService {
     }
 
     @Override
-    public void moveToDir(int id, int dirId, int userId) {
+    public Directory moveToDir(int id, int dirId, int userId) {
         Notepad notepad = notepadRepository.JPA.findById(id);
         if (notepad.getCreator().getId() != userId)
             ErrorCode.ILLEGAL_OPERATION.breakOff();
 
-        // 记事本已经在当前目录下
+        // 记事本在根目录下
+        // 并且目标目录也是根目录
         Directory dir = notepad.getDir();
         if (null == dir && -1 == dirId)
-            return;
+            return null;
 
+        // 记事本移动到目标目录
+        // 如果目标目录为根目录, notepad指定为null目录
         Directory targetDir = directoryRepository.JPA.findById(dirId);
         notepad.setDir(targetDir);
         notepadRepository.JPA.save(notepad);
 
+        // 如果目标目录有效
+        // 需要把目标目录的创建者信息清空后再返回给客户端
+        if (null != targetDir)
+            targetDir.setCreator(null);
+
+        return targetDir;
     }
 }

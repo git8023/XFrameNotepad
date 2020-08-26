@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.y.notepad.model.entity.Directory;
 import org.y.notepad.model.entity.Notepad;
 import org.y.notepad.model.entity.User;
 import org.y.notepad.model.result.Result;
@@ -80,15 +81,16 @@ public class NotepadController {
 
     /**
      * 记事本移动到指定目录
-     * @param id 记事本ID
+     *
+     * @param id    记事本ID
      * @param dirId 目标目录ID
      */
     @RequestMapping("/mv2Dir/{id}/{dirId}")
     public Result moveToDir(@PathVariable int id, @PathVariable int dirId) {
         User user = WebUtil.getUser();
         int userId = user.getId();
-        notepadService.moveToDir(id, dirId, userId);
-        return Result.success();
+        Directory dir = notepadService.moveToDir(id, dirId, userId);
+        return Result.data(dir);
     }
 
 }

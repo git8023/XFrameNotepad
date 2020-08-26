@@ -16,7 +16,7 @@ import {HttpClient} from '@angular/common/http';
 import {NzContextMenuService, NzDropdownMenuComponent, NzModalService, NzNotificationService} from 'ng-zorro-antd';
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Directory} from "../../model/entity/Directory";
-import {EmitType, XFrames} from "../../util/xframes";
+import {EmitType, XFrames2} from "../../util/XFrames2";
 import {Notepad} from '../../model/entity/Notepad';
 import {isFunction, isNullOrUndefined} from 'util';
 import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
@@ -137,7 +137,7 @@ export class MainComponent implements OnInit {
   }
 
   exist() {
-    XFrames.emitType(EmitType.EXIT);
+    XFrames2.emitType(EmitType.EXIT);
   }
 
   // 退出应用
@@ -275,7 +275,7 @@ export class MainComponent implements OnInit {
   // 设置父级目录
   setParent(parent: Directory) {
     this.currentDir = parent || Directory.ROOT;
-    XFrames.emitType(EmitType.SUBHEAD, this.currentDir.path);
+    XFrames2.emitType(EmitType.SUBHEAD, this.currentDir.path);
     this.reloadDirs();
   }
 
@@ -293,6 +293,10 @@ export class MainComponent implements OnInit {
   }
 
   // 关闭上下文菜单
+  // 1. 清理nz上下文菜单
+  // 2. 清理右键目录记录
+  // 3. 清理右键记事本记录
+  // 4. 隐藏自定义上下文遮罩
   closeContextMenu() {
     this.nzContextMenuService.close();
     this.contextDir = null;
@@ -538,7 +542,7 @@ export class MainComponent implements OnInit {
     this.isLoading = true;
     post(this.http, `/notepad/mv2Dir/${this.contextNotepad.id}/${this.chooseDirId}`)
       .subscribe(handleResult2({
-        onOk: () => this.setParent({id: this.chooseDirId}),
+        onOk: ({data}) => this.setParent(data),
         final: () => {
           this.isLoading = false;
           this.chooseDirId = Directory.ROOT.id;

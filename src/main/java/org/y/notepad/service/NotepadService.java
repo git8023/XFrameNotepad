@@ -1,5 +1,6 @@
 package org.y.notepad.service;
 
+import org.y.notepad.model.entity.Directory;
 import org.y.notepad.model.entity.Notepad;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public interface NotepadService {
      * @param id     记事本ID
      * @param dirId  目标目录ID
      * @param userId 当前用户ID
+     * @return 目标目录, 如果{@code -1 == dirId}总是返回null
      */
-    void moveToDir(int id, int dirId, int userId);
+    Directory moveToDir(int id, int dirId, int userId);
 }

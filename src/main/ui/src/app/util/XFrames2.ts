@@ -1,9 +1,12 @@
+/*
+ * 注意: 这里不能直接使用 XFrames, 会导致
+ */
 import {eachA} from "./utils";
 
 /**
  * XFrame通信工具
  */
-export class XFrames {
+export class XFrames2 {
 
   /**
    * 向顶层窗口发送数据
@@ -97,6 +100,7 @@ export class EventHandlerStore {
     if (!this.isListening) {
       this.isListening = true;
       window.addEventListener("message", evt => {
+        console.log('收到 window.message', evt);
         let data: EventData = JSON.parse(evt.data);
         this.handle(data);
       });
@@ -109,7 +113,7 @@ export class EventHandlerStore {
    */
   private static handle(ev: EventData) {
     let handlers = this.store[ev.type] || [];
-    eachA(handlers, f => false == f(ev.value));
+    eachA(handlers, f => false == f(ev.data));
   }
 
 }
