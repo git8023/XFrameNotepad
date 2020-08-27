@@ -150,6 +150,22 @@ public class DirectoryServiceImpl implements DirectoryService {
         return list;
     }
 
+    @Override
+    public Directory detailById(int userId, int id) {
+        Directory dir = directoryRepository.JPA.findById(id);
+        if (null == dir)
+            return null;
+
+        // 父级目录中可能有 User.token
+        dir.setParent(null);
+
+        User creator = dir.getCreator();
+        if (creator.getId() != userId)
+            ErrorCode.DENIED_OPERATION.breakOff();
+        creator.setToken(null);
+        return dir;
+    }
+
     /**
      * 转换为完整路径
      *

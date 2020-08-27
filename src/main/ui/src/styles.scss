@@ -215,3 +215,16 @@ body {
 .color-red {
   color: #f00;
 }
+
+.pointer {
+  cursor: pointer;
+
+  &.icon-pointer {
+    color: #ddd;
+
+    &:hover {
+      color: #999;
+    }
+  }
+
+}

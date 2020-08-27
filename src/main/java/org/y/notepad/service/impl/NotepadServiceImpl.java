@@ -82,6 +82,7 @@ public class NotepadServiceImpl implements NotepadService {
         old.setContent(content);
         old.setLastModified(new Date());
         old.setSize(content.toCharArray().length);
+        old.setType(NotepadType.MARKDOWN);
         notepadRepository.JPA.save(old);
     }
 

@@ -85,6 +85,11 @@ export function copyProps(src: object, dest: object, each?: (k, sv, dv) => boole
   return dest;
 }
 
+export function apply(fn: Function, _this?: any, args?: []) {
+  if (isFunction(fn))
+    return fn.apply(_this, args);
+}
+
 //</editor-fold>
 
 //<editor-fold desc="object">
@@ -164,6 +169,7 @@ export function keysO(o: any): Array<string> {
  * @param {((e: T, i?: number|string) => boolean) | void | any} f
  */
 export function eachA<T>(a: Array<T>, f?: (((e: T, i?: number | string) => boolean) | void | any)) {
+  if (!isArray(a)) return a;
   if (!isFunction(f)) f = () => true;
   for (let i = 0, len = a.length; i < len; i++)
     if (false === f(a[i] as T, i))
@@ -282,6 +288,33 @@ export function filterA<T>(a: Array<T>, cb: (v: T, k: number) => boolean | null)
 
   delKeys = delKeys.reverse();
   eachA(delKeys, id => a.splice(id, 1));
+}
+
+/**
+ * 数组按指定关键字分组
+ * @param a 数组
+ * @param k 关键字, 仅支持一级属性名
+ */
+export function groupA<T>(a: Array<T>, k: string): { [s: string]: Array<T> } {
+  let ret = {};
+  eachA(a, e => {
+    let rk = e[k];
+    let arr = ret[rk] || [];
+    arr.push(e);
+    ret[rk] = arr;
+  });
+  return ret;
+}
+
+/**
+ * 提取数组中每个元素的指定属性值到一个数组中
+ * @param a 数组
+ * @param k 元素中的属性名
+ */
+export function extendPropsA<T, P>(a: Array<T>, k: string): Array<P> {
+  let pa = [];
+  eachA(a, e => pa.push(e[k]));
+  return pa;
 }
 
 //</editor-fold>
@@ -975,40 +1008,97 @@ export class Storages {
   }
 }
 
+//<editor-fold desc="环境相关设置">
 /**
  * 调试器
  */
 export class Debugger {
-
-  /**
-   * 只在本地开发时执行
-   * @param {Function} fn 目标函数
-   * @returns {Debugger}
-   */
   static dev(fn: Function) {
     if (this.isDevModel() && isFunction(fn))
       fn();
     return this;
   }
 
-  /**
-   * 只在线上环境执行
-   * @param {Function} fn 目标函数
-   * @returns {Debugger}
-   */
   static prod(fn: Function) {
     if (!this.isDevModel() && isFunction(fn))
       fn();
     return this;
   }
 
-  /**
-   * 当前是否为开发模式
-   * @returns {boolean} true-开发模式, false-线上模式
-   */
-  private static isDevModel() {
+  static isDevModel() {
     return 'http://localhost:4200' === location.origin;
   }
+
+  static getValue<T>(...c: DebuggerCallback<T>[]): T {
+    for (let i = 0; i < c.length; i++)
+      if (c[i].state)
+        return c[i].func();
+  }
+
+  static devVal<T>(def: DebuggerExecutor<T>) {
+    return new DebuggerCallback(this.isDevModel(), def);
+  }
+
+  static prodVal<T>(def: DebuggerExecutor<T>) {
+    return new DebuggerCallback(!this.isDevModel(), def);
+  }
+}
+
+/**
+ * 调试执行器
+ */
+class DebuggerCallback<T> {
+  constructor(
+    public state: boolean,
+    public func: DebuggerExecutor<T>
+  ) {
+  }
+}
+
+/**
+ * 调试执行器
+ * @param T 需要返回的类型
+ */
+export interface DebuggerExecutor<T> {
+  (): T;
+}
+
+//</editor-fold>
+
+/**
+ * 计数器
+ */
+export class Counter {
+  private times = 0;
+  private onDone: Function;
+
+  /**
+   * 向计数器添加一项待完成事件
+   * @param func 可执行函数
+   */
+  fire(func: (timer) => void): Counter {
+    func(() => this.countdown());
+    return this;
+  }
+
+  /**
+   * 所有事件完成后执行
+   * @param func 可执行函数
+   */
+  done(func: () => void) {
+    this.onDone = func;
+  }
+
+  /**
+   * 倒计时计数
+   */
+  private countdown() {
+    if (--this.times <= 0 && isFunction(this.onDone)) {
+      this.times = 0;
+      this.onDone();
+    }
+  }
+
 }
 
 //</editor-fold>

@@ -63,4 +63,35 @@ public interface DirectoryMapper {
     int deleteAllByPath(
             @Param("userId") int userId,
             @Param("path") String path);
+
+    /**
+     * 按指定关键字搜索目录
+     *
+     * @param userId 用户ID
+     * @param key    关键字, e.g: {key}%
+     * @return 目录列表
+     */
+    @Select({
+            "<script>",
+            "SELECT",
+            "    `directory`.id             `id`,",
+            "    `directory`.create_time    `createTime`,",
+            "    `directory`.`name`         `name`,",
+            "    `directory`.path           `path`,",
+            "    `directory`.user_id        `creator.id`,",
+            "    `directory`.parent_id      `parent.id`",
+            "FROM",
+            "    `directory`",
+            "WHERE",
+            "    `directory`.user_id = #{userId}",
+            "    <if test='null != key'>",
+            "        AND `directory`.`name` LIKE #{key}",
+            "    </if>",
+            "</script>",
+    })
+    List<Directory> selectListByPathKey(
+            @Param("userId") int userId,
+            @Param("key") String key
+    );
+
 }

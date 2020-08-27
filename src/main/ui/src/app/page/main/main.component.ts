@@ -1,11 +1,14 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {EditorConfig} from "../../cfg/editor-config";
 import {
   catchErr,
   clone,
+  Counter,
   dateFmt,
   Debugger,
   eachA,
+  extendPropsA,
+  groupA,
   handleResult2,
   post,
   regexpValidator,
@@ -20,6 +23,9 @@ import {EmitType, XFrames2} from "../../util/XFrames2";
 import {Notepad} from '../../model/entity/Notepad';
 import {isFunction, isNullOrUndefined} from 'util';
 import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
+import {fromEvent, of} from 'rxjs';
+import {debounceTime, distinctUntilChanged, pluck, switchMap} from 'rxjs/operators';
+import {Result} from '../../model/result/Result';
 
 declare var editormd: any;
 
@@ -39,7 +45,8 @@ const ONLY_EDIT = 2;
   styleUrls: ['./main.component.scss']
 })
 export class MainComponent implements OnInit {
-  @ViewChild('content', {static: true, read: ElementRef}) content: ElementRef;
+  @ViewChild('search', {static: true, read: ElementRef}) searchKeyElRef: ElementRef;
+
   // markdown编辑器配置
   conf = new EditorConfig();
 
@@ -101,12 +108,16 @@ export class MainComponent implements OnInit {
   // 当前用户下所有的目录
   allDirs = [];
 
+  // 搜索关键字
+  searchKey: string = '';
+
   constructor(
     private http: HttpClient,
     private notify: NzNotificationService,
     private modal: NzModalService,
     private fb: FormBuilder,
     private nzContextMenuService: NzContextMenuService,
+    private renderer: Renderer2
   ) {
   }
 
@@ -116,6 +127,31 @@ export class MainComponent implements OnInit {
     this.addDirForm = this.fb.group({
       name: [null, [Validators.required, this.dirNameValidator]]
     });
+
+    // 监听搜索框
+    fromEvent(this.searchKeyElRef.nativeElement, 'keyup')
+      .pipe(
+        debounceTime(300),
+        pluck('target', 'value'),
+        distinctUntilChanged(),
+        switchMap(key => {
+          return Debugger.getValue(
+            Debugger.devVal(() => of({flag: true, data: [{id: 1, name: 'test'}]})),
+            Debugger.prodVal(() => {
+              if (key) return post(this.http, `/search/cup`, {key});
+              else this.reloadDirsAndNotepads();
+            })
+          );
+        }),
+      )
+      .subscribe((data: Result) => {
+        console.log('收到数据: ', data);
+        if (data) {
+          let typeGroup = groupA(data.data as any[], 'type');
+          this.dirs = extendPropsA(typeGroup['DIRECTORY'], 'data');
+          this.notepads = extendPropsA(typeGroup['NOTEPAD'], 'data');
+        }
+      });
 
     Debugger
       .dev(() => this.init())
@@ -163,7 +199,7 @@ export class MainComponent implements OnInit {
       .subscribe(handleResult2({
         notify: this.notify,
         onOk: () => {
-          this.reloadDirs();
+          this.reloadDirsAndNotepads();
           this.addModalVisible = false;
           this.closeContextMenu();
         },
@@ -190,7 +226,7 @@ export class MainComponent implements OnInit {
     this.resetEditorMd();
 
     // 加载子目录
-    Debugger.prod(() => this.reloadDirs());
+    Debugger.prod(() => this.reloadDirsAndNotepads());
   }
 
   // 重置 editormd 插件
@@ -231,58 +267,72 @@ export class MainComponent implements OnInit {
   }
 
   // 加载目录和文件
-  private reloadDirs() {
+  private reloadDirsAndNotepads() {
     this.isLoading = true;
-    post(this.http, `/dir/dirs/${this.currentDir.id}`, null, ...catchErr())
-      .subscribe(handleResult2({
-        notify: this.notify,
-        onOk: ({data}) => this.dirs = data || [],
-        final: () => this.isLoading = false
-      }));
-
-    post(this.http, `/notepad/list/${this.currentDir.id}`, null, ...catchErr())
-      .subscribe(handleResult2({
-        notify: this.notify,
-        onOk: ({data}) => {
-          let now = new Date().getTime();
-          this.notepads = eachA<Notepad>(data || [], (d: Notepad) => {
-            d.lastModified = new Date(d.lastModified);
-            let lm = d.lastModified.getTime();
-            // 同天 hh:mm
-            let diffMs = now - lm;
-            const dayMs = 24 * 60 * 60 * 1000;
-            if (dayMs >= diffMs) {
-              d.lastModified = dateFmt(d.lastModified, 'hh:mm');
-              return;
+    new Counter()
+      .fire(timer => {
+        post(this.http, `/dir/detail/${this.currentDir.id}`)
+          .subscribe(handleResult2({
+            notify: this.notify,
+            onOk: ({data}) => this.currentDir = data,
+            final: () => {
+              XFrames2.emitType(EmitType.SUBHEAD, this.currentDir.path);
+              timer();
             }
+          }));
+      })
+      .fire(timer => {
+        post(this.http, `/dir/dirs/${this.currentDir.id}`, null, ...catchErr())
+          .subscribe(handleResult2({
+            notify: this.notify,
+            onOk: ({data}) => this.dirs = data || [],
+            final: timer
+          }))
+      })
+      .fire(timer => {
+        post(this.http, `/notepad/list/${this.currentDir.id}`, null, ...catchErr())
+          .subscribe(handleResult2({
+            notify: this.notify,
+            onOk: ({data}) => {
+              let now = new Date().getTime();
+              this.notepads = eachA<Notepad>(data || [], (d: Notepad) => {
+                d.lastModified = new Date(d.lastModified);
+                let lm = d.lastModified.getTime();
+                // 同天 hh:mm
+                let diffMs = now - lm;
+                const dayMs = 24 * 60 * 60 * 1000;
+                if (dayMs >= diffMs) {
+                  d.lastModified = dateFmt(d.lastModified, 'hh:mm');
+                  return;
+                }
 
-            // 10天之内 10天前
-            const day10 = dayMs * 10;
-            if (day10 >= diffMs) {
-              d.lastModified = Math.floor((diffMs + day10 - 1) / day10) + '天前';
-              return;
-            }
+                // 10天之内 10天前
+                const day10 = dayMs * 10;
+                if (day10 >= diffMs) {
+                  d.lastModified = Math.floor((diffMs + day10 - 1) / day10) + '天前';
+                  return;
+                }
 
-            // 其他 yyyy-MM
-            d.lastModified = dateFmt(d.lastModified, 'yyyy-MM');
-          });
-          if (!this.openedNotepad) this.openNotepad(this.notepads[0]);
-        },
-        final: () => this.isLoading = false
-      }));
+                // 其他 yyyy-MM
+                d.lastModified = dateFmt(d.lastModified, 'yyyy-MM');
+              });
+              if (!this.openedNotepad) this.openNotepad(this.notepads[0]);
+            },
+            final: timer
+          }))
+      })
+      .done(() => this.isLoading = false);
   }
 
   // 设置父级目录
   setParent(parent: Directory) {
     this.currentDir = parent || Directory.ROOT;
-    XFrames2.emitType(EmitType.SUBHEAD, this.currentDir.path);
-    this.reloadDirs();
+    this.reloadDirsAndNotepads();
   }
 
   // 返回上级目录
   intoParentDir() {
-    let parent = this.currentDir.parent;
-    this.setParent(parent ? parent : Directory.ROOT);
+    this.setParent(this.currentDir.parent);
   }
 
   // 在目录上点击右键
@@ -366,7 +416,7 @@ export class MainComponent implements OnInit {
     post(this.http, `/notepad/update/`, param, ...catchErr())
       .subscribe(handleResult2({
         notify: this.notify,
-        onOk: () => this.changeEditorModal(ONLY_PREVIEW),
+        showSuccess: true,
         final: () => this.isLoading = false
       }));
   }
@@ -385,7 +435,7 @@ export class MainComponent implements OnInit {
         onOk: () => {
           this.contextDir.name = this.contextDir.oldName;
           this.addModalVisible = false;
-          this.reloadDirs();
+          this.reloadDirsAndNotepads();
         },
         final: () => {
           this.isLoading = false;
@@ -453,7 +503,7 @@ export class MainComponent implements OnInit {
       }))
       .finally(() => {
         this.closeContextMenu();
-        this.reloadDirs();
+        this.reloadDirsAndNotepads();
         this.checkOpenedNotepadExist();
       });
 
@@ -549,5 +599,11 @@ export class MainComponent implements OnInit {
           this.closeContextMenu();
         }
       }));
+  }
+
+  // 清理搜索关键字
+  clearSearchKey() {
+    this.searchKey = '';
+    this.reloadDirsAndNotepads();
   }
 }

@@ -109,4 +109,11 @@ public class DirectoryController {
         return Result.data(dirs);
     }
 
+    @RequestMapping("/detail/{id}")
+    public Result detail(@PathVariable int id) {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        Directory dir = directoryService.detailById(userId, id);
+        return Result.data(dir);
+    }
 }

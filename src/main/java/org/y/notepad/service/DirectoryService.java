@@ -77,4 +77,13 @@ public interface DirectoryService {
      * @return 目录列表
      */
     List<Directory> getAllDirs(int userId);
+
+    /**
+     * 获取目录详情
+     *
+     * @param userId 当前用户
+     * @param id     目录ID
+     * @return 目录详情
+     */
+    Directory detailById(int userId, int id);
 }

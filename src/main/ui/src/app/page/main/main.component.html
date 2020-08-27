@@ -48,7 +48,12 @@
     <div class="flex-h search-box flex-center">
       <i nz-icon nzType="rollback" nzTheme="outline" class="up-level"
          (click)="intoParentDir()" [class.disabled]="-1 == currentDir.id"></i>
-      <nz-input-group class="flex-1"><input type="text" nz-input placeholder="输入搜索关键字"/></nz-input-group>
+      <nz-input-group [nzSuffix]="suffixTemplateInfo">
+        <input #search class="flex-1" type="text" [(ngModel)]="searchKey" nz-input placeholder="输入搜索关键字"/>
+      </nz-input-group>
+      <ng-template #suffixTemplateInfo>
+        <i nz-icon nzType="close-circle" nzTheme="fill" class="pointer icon-pointer" (click)="clearSearchKey()"></i>
+      </ng-template>
     </div>
 
     <div class="dirs flex-1 overflow-auto def-scroll">
@@ -164,7 +169,7 @@
   <div class="moving-modal">
     <div class="flex-h flex-center moving-title">
       <i nz-icon nzType="file-text" nzTheme="outline"></i>
-      <div class="flex-1">&nbsp;{{contextNotepad?contextNotepad.title:''}}</div>
+      <div class="flex-1">&nbsp;{{contextNotepad ? contextNotepad.title : ''}}</div>
     </div>
 
     <div class="moving-preview flex-h flex-center">
