@@ -1,6 +1,7 @@
 package org.y.notepad.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.y.notepad.model.entity.Directory;
@@ -20,6 +21,8 @@ import java.util.Objects;
 
 @Service
 public class NotepadServiceImpl implements NotepadService {
+    @Value("${notepad.lately-count}")
+    private int NOTEPAD_LATELY_COUNT;
 
     private final NotepadRepository notepadRepository;
     private final UserService userService;
@@ -122,5 +125,17 @@ public class NotepadServiceImpl implements NotepadService {
             targetDir.setCreator(null);
 
         return targetDir;
+    }
+
+    @Override
+    public List<Notepad> lately(int userId) {
+        return notepadRepository.MAPPER.selectListByLastModifiedDescAndLimit(userId, NOTEPAD_LATELY_COUNT);
+    }
+
+    @Override
+    public void deleteById(int userId, int id) {
+        Notepad notepad = notepadRepository.JPA.findById(id);
+        // TODO
+
     }
 }

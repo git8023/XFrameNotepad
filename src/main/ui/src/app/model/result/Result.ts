@@ -1,7 +1,7 @@
 export class Result {
   flag: boolean;
-  message: string;
-  data: any;
+  message?: string;
+  data?: any;
   errorCode?: any;
 
   static readonly fail = new Result(false, '服务器忙, 请稍候再试.');

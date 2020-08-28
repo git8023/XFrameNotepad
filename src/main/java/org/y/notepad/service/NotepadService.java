@@ -53,4 +53,20 @@ public interface NotepadService {
      * @return 目标目录, 如果{@code -1 == dirId}总是返回null
      */
     Directory moveToDir(int id, int dirId, int userId);
+
+    /**
+     * 获取最近修改的记事本
+     *
+     * @param userId 当前用户ID
+     * @return 记事本列表
+     */
+    List<Notepad> lately(int userId);
+
+    /**
+     * 删除指定记事本
+     *
+     * @param userId 当前用户ID
+     * @param id     记事本ID
+     */
+    void deleteById(int userId, int id);
 }

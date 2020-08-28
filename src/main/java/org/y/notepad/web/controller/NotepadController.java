@@ -93,4 +93,27 @@ public class NotepadController {
         return Result.data(dir);
     }
 
+    /**
+     * 获取最近20条记录
+     */
+    @RequestMapping("/lately")
+    public Result lately() {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        List<Notepad> notepads = notepadService.lately(userId);
+        return Result.data(notepads);
+    }
+
+    /**
+     * 删除记事本
+     *
+     * @param id 记事本ID
+     */
+    @RequestMapping("/del/{id}")
+    public Result delete(@PathVariable int id) {
+        User user = WebUtil.getUser();
+        int userId = user.getUserId();
+        notepadService.deleteById(userId, id);
+        return Result.success();
+    }
 }

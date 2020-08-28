@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {EditorConfig} from "../../cfg/editor-config";
 import {
   catchErr,
@@ -38,6 +38,21 @@ const ONLY_PREVIEW = 1;
 // 2: 编辑
 const ONLY_EDIT = 2;
 
+// 左侧菜单
+class LeftMenu {
+  // nz样式类型
+  nzType: string;
+
+  // 显示的文本内容
+  text: string;
+
+  // 点击处理事件
+  click?: Function;
+
+  // 点击菜单后是否保留痕迹? 激活active样式
+  // 默认 false
+  trail?: boolean;
+}
 
 @Component({
   selector: 'app-main',
@@ -46,6 +61,19 @@ const ONLY_EDIT = 2;
 })
 export class MainComponent implements OnInit {
   @ViewChild('search', {static: true, read: ElementRef}) searchKeyElRef: ElementRef;
+
+  // 最左侧滑动菜单
+  leftMenus: Array<LeftMenu> = [
+    {nzType: 'snippets', text: '最近文档', trail: true, click: () => this.latelyNotepad()},
+    {nzType: 'folder', text: '我的文件夹', trail: true, click: () => this.setParent(Directory.ROOT)},
+    {nzType: 'deployment-unit', text: '与我分享', trail: true},
+    {nzType: 'share-alt', text: '我的分享', trail: true},
+    {nzType: 'delete', text: '回收站', trail: true},
+    {nzType: 'logout', text: '退出', click: () => this.exitApp()}
+  ];
+
+  // 当前激活的左侧菜单
+  activeLeftMenu: LeftMenu = this.leftMenus[0];
 
   // markdown编辑器配置
   conf = new EditorConfig();
@@ -116,8 +144,7 @@ export class MainComponent implements OnInit {
     private notify: NzNotificationService,
     private modal: NzModalService,
     private fb: FormBuilder,
-    private nzContextMenuService: NzContextMenuService,
-    private renderer: Renderer2
+    private nzContextMenuService: NzContextMenuService
   ) {
   }
 
@@ -226,7 +253,7 @@ export class MainComponent implements OnInit {
     this.resetEditorMd();
 
     // 加载子目录
-    Debugger.prod(() => this.reloadDirsAndNotepads());
+    Debugger.prod(() => this.latelyNotepad());
   }
 
   // 重置 editormd 插件
@@ -274,7 +301,7 @@ export class MainComponent implements OnInit {
         post(this.http, `/dir/detail/${this.currentDir.id}`)
           .subscribe(handleResult2({
             notify: this.notify,
-            onOk: ({data}) => this.currentDir = data,
+            onOk: ({data}) => this.currentDir = data || Directory.ROOT,
             final: () => {
               XFrames2.emitType(EmitType.SUBHEAD, this.currentDir.path);
               timer();
@@ -293,31 +320,7 @@ export class MainComponent implements OnInit {
         post(this.http, `/notepad/list/${this.currentDir.id}`, null, ...catchErr())
           .subscribe(handleResult2({
             notify: this.notify,
-            onOk: ({data}) => {
-              let now = new Date().getTime();
-              this.notepads = eachA<Notepad>(data || [], (d: Notepad) => {
-                d.lastModified = new Date(d.lastModified);
-                let lm = d.lastModified.getTime();
-                // 同天 hh:mm
-                let diffMs = now - lm;
-                const dayMs = 24 * 60 * 60 * 1000;
-                if (dayMs >= diffMs) {
-                  d.lastModified = dateFmt(d.lastModified, 'hh:mm');
-                  return;
-                }
-
-                // 10天之内 10天前
-                const day10 = dayMs * 10;
-                if (day10 >= diffMs) {
-                  d.lastModified = Math.floor((diffMs + day10 - 1) / day10) + '天前';
-                  return;
-                }
-
-                // 其他 yyyy-MM
-                d.lastModified = dateFmt(d.lastModified, 'yyyy-MM');
-              });
-              if (!this.openedNotepad) this.openNotepad(this.notepads[0]);
-            },
+            onOk: ({data}) => this.setNotepads(data),
             final: timer
           }))
       })
@@ -395,8 +398,10 @@ export class MainComponent implements OnInit {
         this.editor.watch();
         break;
       case ONLY_PREVIEW:
-        this.editor.previewing();
-        setTimeout(() => this.editor.setMarkdown(this.editor.getMarkdown()), 200);
+        if (!this.editor.state.preview) {
+          this.editor.previewing();
+          setTimeout(() => this.editor.setMarkdown(this.editor.getMarkdown()), 200);
+        }
         break;
       case ONLY_EDIT:
         this.editor.previewed();
@@ -605,5 +610,124 @@ export class MainComponent implements OnInit {
   clearSearchKey() {
     this.searchKey = '';
     this.reloadDirsAndNotepads();
+  }
+
+  // 激活左侧菜单
+  activeLeftNav(menu: LeftMenu) {
+    if (menu.trail)
+      this.activeLeftMenu = menu;
+
+    if (isFunction(menu.click))
+      menu.click();
+  }
+
+  // 获取最近记事本
+  private latelyNotepad() {
+    this.isLoading = true;
+    this.dirs = [];
+    this.notepads = [];
+
+    Debugger
+      .simulate<Result>({
+        flag: true,
+        data: <Notepad[]>[
+          {
+            id: 1,
+            title: '文章1',
+            content: '# 标题1',
+            lastModified: new Date().getTime() - 5 * 1000,
+            dir: new Directory(1, '目录1', '/目录1')
+          },
+          {
+            id: 2,
+            title: '文章2',
+            content: '# 标题2',
+            lastModified: new Date().getTime() - 60 * 1000,
+            dir: new Directory(1, '目录1', '/目录1')
+          },
+          {
+            id: 3,
+            title: '文章3',
+            content: '# 标题3',
+            lastModified: new Date().getTime() - 60 * 60 * 1000,
+            dir: new Directory(2, '目录2', '/目录2')
+          },
+          {
+            id: 4,
+            title: '文章4',
+            content: '# 标题4',
+            lastModified: new Date().getTime() - 24 * 60 * 60 * 1000,
+            dir: new Directory(3, '目录3', '/目录3')
+          },
+          {
+            id: 5, title: '文章5', content: '# 标题5',
+            lastModified: new Date().getTime() - 11 * 24 * 60 * 60 * 1000,
+          },
+        ]
+      })
+      .post(this.http, `/notepad/lately`)
+      .subscribe(handleResult2({
+        notify: this.notify,
+        onOk: ({data}) => this.setNotepads(data),
+        final: () => this.isLoading = false
+      }));
+  }
+
+  // 设置记事本列表
+  private setNotepads(data: Array<Notepad>) {
+    let now = new Date().getTime();
+    this.notepads = eachA<Notepad>(data || [], (d: Notepad) => {
+      d.lastModified = new Date(d.lastModified);
+      let lm = d.lastModified.getTime();
+      let diffMs = now - lm;
+
+      // 一分钟内: x秒前
+      const ms = 1000;
+      const minuteMs = 60 * ms;
+      if (minuteMs >= diffMs) {
+        d.lastModified = Math.floor((diffMs + ms - 1) / ms) + '秒前';
+        return;
+      }
+
+      // 一小时内: x分前
+      const hourMs = 60 * minuteMs;
+      if (hourMs >= diffMs) {
+        d.lastModified = Math.floor((diffMs + minuteMs - 1) / minuteMs) + '分前';
+        return;
+      }
+
+      // 一天内
+      const dayMs = 24 * hourMs;
+      if (dayMs >= diffMs) {
+        d.lastModified = Math.floor((diffMs + hourMs - 1) / hourMs) + '小时前';
+        return;
+      }
+
+      // 10天之内 10天前
+      const day10 = dayMs * 10;
+      if (day10 >= diffMs) {
+        d.lastModified = Math.floor((diffMs + day10 - 1) / day10) + '天前';
+        return;
+      }
+
+      // 其他 yyyy-MM
+      d.lastModified = dateFmt(d.lastModified, 'yyyy-MM-dd');
+    });
+    if (!this.openedNotepad)
+      this.openNotepad(this.notepads[0]);
+  }
+
+  // 删除记事本
+  deleteNotepad() {
+    this.isLoading = true;
+    Debugger
+      .simulate<Result>({flag: true})
+      .post(this.http, `/notepad/del/${this.contextNotepad.id}`)
+      .subscribe(handleResult2({
+        showSuccess: true,
+        notify: this.notify,
+        onOk: () => this.reloadDirsAndNotepads(),
+        final: () => this.isLoading = false
+      }));
   }
 }

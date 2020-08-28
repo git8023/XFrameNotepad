@@ -7,7 +7,7 @@
     </typeAliases>
 
     <typeHandlers>
-        <!--<typeHandler handler="org.apache.ibatis.type.EnumOrdinalTypeHandler"-->
-        <!--             javaType="org.y.core.model.enu.ModuleStatus"/>-->
+        <typeHandler handler="org.apache.ibatis.type.EnumOrdinalTypeHandler"
+                     javaType="org.y.notepad.model.enu.NotepadType"/>
     </typeHandlers>
 </configuration>

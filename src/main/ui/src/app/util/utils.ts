@@ -644,7 +644,7 @@ export function handleResult2(cfg: {
   showSuccess?: boolean,
   onOk?: (ret) => void,
   onFail?: (ret) => void,
-  final?: (ret) => void
+  final?: (ret?) => void
 }) {
   return (ret: Result) => {
 
@@ -1041,6 +1041,35 @@ export class Debugger {
 
   static prodVal<T>(def: DebuggerExecutor<T>) {
     return new DebuggerCallback(!this.isDevModel(), def);
+  }
+
+  /**
+   * 如果在开发环境中将使用指定数据代理服务器返回数据, 并截断网络请求
+   * @param responseData 模拟数据
+   */
+  static simulate<T>(responseData?: T): ServerSimulate<T> {
+    return new ServerSimulate(responseData);
+  }
+}
+
+/**
+ * 服务器模拟器, 通过{@link Debugger.isDevModel()}判断当前环境
+ * 是否为开发环境
+ */
+class ServerSimulate<T> {
+
+  constructor(private data: T) {
+  }
+
+  /**
+   * 发送post请求
+   * @param http Http客户端对象
+   * @param url 请求地址
+   * @param param 请求参数
+   * @returns 可订阅对象
+   */
+  post(http: HttpClient, url: string, param?: any): Observable<T> {
+    return Debugger.isDevModel() ? of(this.data) : post(http, url, param);
   }
 }
 

@@ -157,7 +157,9 @@ public class DirectoryServiceImpl implements DirectoryService {
             return null;
 
         // 父级目录中可能有 User.token
-        dir.setParent(null);
+        Directory parent = dir.getParent();
+        if (null != parent)
+            parent.setParent(null);
 
         User creator = dir.getCreator();
         if (creator.getId() != userId)

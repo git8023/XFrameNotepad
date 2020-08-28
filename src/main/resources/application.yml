@@ -75,3 +75,7 @@ spring:
 logging:
   file:
     path: /xframe/app/notepad
+
+# 最近记事本条数
+notepad:
+  lately-count: 20
