@@ -3,6 +3,7 @@ package org.y.notepad.model.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -14,18 +15,26 @@ import java.util.Date;
 @EqualsAndHashCode(of = "id")
 public class User {
 
-    // 自增ID
+    /**
+     * 当前应用中的用户自增ID
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    // 用户ID
+    /**
+     * Core中的用户ID
+     */
     private int userId;
 
-    // 授权码
+    /**
+     * 授权码
+     */
     private String token;
 
-    // 创建时间
+    /**
+     * 创建时间
+     */
     private Date createDate;
 
     public User(int userId) {

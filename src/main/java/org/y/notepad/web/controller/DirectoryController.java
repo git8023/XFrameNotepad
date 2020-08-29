@@ -45,7 +45,7 @@ public class DirectoryController {
 
         // 添加子目录
         try {
-            int pid = Integer.valueOf(parentId);
+            int pid = Integer.parseInt(parentId);
             directoryService.add(userId, name, pid);
         } catch (NumberFormatException e) {
             ErrorCode.ILLEGAL_PARAMETER.breakOff("无效的上级目录参数");
@@ -75,7 +75,7 @@ public class DirectoryController {
     @RequestMapping("/updateName")
     public Result updateName(int id, String name) {
         User user = WebUtil.getUser();
-        int userId = user.getUserId();
+        int userId = user.getId();
         directoryService.updateName(id, name, userId);
         return Result.success();
     }
@@ -89,7 +89,7 @@ public class DirectoryController {
     @RequestMapping("/del/{id}")
     public Result delete(@PathVariable int id, boolean force) {
         User user = WebUtil.getUser();
-        int userId = user.getUserId();
+        int userId = user.getId();
 
         boolean ret = true;
         if (force) directoryService.deleteForce(id, userId);

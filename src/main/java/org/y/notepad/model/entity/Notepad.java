@@ -1,18 +1,21 @@
 package org.y.notepad.model.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.y.notepad.model.enu.NotepadStatus;
 import org.y.notepad.model.enu.NotepadType;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Data
+@EqualsAndHashCode(of = "id")
 @Entity
-@Table
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class Notepad {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     /**
@@ -58,4 +61,9 @@ public class Notepad {
      * 类型
      */
     private NotepadType type;
+
+    /**
+     * 状态
+     */
+    private NotepadStatus status;
 }

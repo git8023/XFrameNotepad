@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.y.notepad.model.entity.Directory;
 import org.y.notepad.model.entity.Notepad;
+import org.y.notepad.model.entity.Recycle;
 import org.y.notepad.model.entity.User;
 import org.y.notepad.model.enu.ErrorCode;
+import org.y.notepad.model.enu.NotepadStatus;
 import org.y.notepad.model.enu.NotepadType;
 import org.y.notepad.repository.DirectoryRepository;
+import org.y.notepad.repository.RecycleRepository;
 import org.y.notepad.repository.NotepadRepository;
 import org.y.notepad.service.NotepadService;
 import org.y.notepad.service.UserService;
@@ -27,15 +30,19 @@ public class NotepadServiceImpl implements NotepadService {
     private final NotepadRepository notepadRepository;
     private final UserService userService;
     private final DirectoryRepository directoryRepository;
+    private final RecycleRepository recycleRepository;
 
     @Autowired
     public NotepadServiceImpl(
             NotepadRepository notepadRepository,
             UserService userService,
-            DirectoryRepository directoryRepository) {
+            DirectoryRepository directoryRepository,
+            RecycleRepository recycleRepository
+    ) {
         this.notepadRepository = notepadRepository;
         this.userService = userService;
         this.directoryRepository = directoryRepository;
+        this.recycleRepository = recycleRepository;
     }
 
     @Transactional
@@ -132,10 +139,18 @@ public class NotepadServiceImpl implements NotepadService {
         return notepadRepository.MAPPER.selectListByLastModifiedDescAndLimit(userId, NOTEPAD_LATELY_COUNT);
     }
 
+    @Transactional
     @Override
     public void deleteById(int userId, int id) {
         Notepad notepad = notepadRepository.JPA.findById(id);
-        // TODO
+        if (null == notepad)
+            return;
 
+        if (notepad.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        notepad.setStatus(NotepadStatus.RECYCLE);
+        notepadRepository.JPA.save(notepad);
+        recycleRepository.JPA.save(new Recycle(notepad));
     }
 }

@@ -74,7 +74,7 @@ public class NotepadController {
     @RequestMapping("/exist/{id}")
     public Result exist(@PathVariable int id) {
         User user = WebUtil.getUser();
-        int userId = user.getUserId();
+        int userId = user.getId();
         boolean isExist = notepadService.checkExist(userId, id);
         return Result.data(isExist);
     }
@@ -112,7 +112,7 @@ public class NotepadController {
     @RequestMapping("/del/{id}")
     public Result delete(@PathVariable int id) {
         User user = WebUtil.getUser();
-        int userId = user.getUserId();
+        int userId = user.getId();
         notepadService.deleteById(userId, id);
         return Result.success();
     }

@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.WebUtils;
 import org.y.notepad.util.Constants;
 import org.y.notepad.web.util.WebUtil;
 
@@ -34,6 +33,7 @@ public class XFrameController {
             log.info("MODULE_ID不匹配, 期望值[" + Constants.MODULE_ID + "]实际值[" + mid + "]");
             return;
         }
+
         if (!StringUtils.equals(Constants.TOKEN, token)) {
             log.info("TOKEN不匹配, 期望值[" + Constants.TOKEN + "]实际值[" + token + "]");
             return;
