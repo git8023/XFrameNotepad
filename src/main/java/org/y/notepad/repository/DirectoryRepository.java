@@ -1,6 +1,7 @@
 package org.y.notepad.repository;
 
 import org.springframework.stereotype.Component;
+import org.y.notepad.repository.jpa.DirectoryJpa;
 import org.y.notepad.repository.mapper.DirectoryMapper;
 
 @Component

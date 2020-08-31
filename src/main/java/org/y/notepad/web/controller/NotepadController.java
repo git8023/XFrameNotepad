@@ -107,13 +107,14 @@ public class NotepadController {
     /**
      * 删除记事本
      *
-     * @param id 记事本ID
+     * @param id      记事本ID
+     * @param recycle true-操作记事本回收站, false-操作记事本
      */
     @RequestMapping("/del/{id}")
-    public Result delete(@PathVariable int id) {
+    public Result delete(@PathVariable int id, boolean recycle) {
         User user = WebUtil.getUser();
         int userId = user.getId();
-        notepadService.deleteById(userId, id);
+        notepadService.deleteById(userId, id, recycle);
         return Result.success();
     }
 }

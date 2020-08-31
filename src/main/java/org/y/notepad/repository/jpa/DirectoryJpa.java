@@ -1,4 +1,4 @@
-package org.y.notepad.repository;
+package org.y.notepad.repository.jpa;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -141,7 +141,38 @@ public class NotepadServiceImpl implements NotepadService {
 
     @Transactional
     @Override
-    public void deleteById(int userId, int id) {
+    public void deleteById(int userId, int id, boolean recycle) {
+        if (recycle)
+            deleteRecycle(userId, id);
+        else
+            deleteOrigin(userId, id);
+    }
+
+    /**
+     * 物理删除记事本数据和回收站记录
+     *
+     * @param userId 用户ID
+     * @param id     记事本ID
+     */
+    private void deleteRecycle(int userId, int id) {
+        Notepad notepad = notepadRepository.JPA.findById(id);
+        if (null == notepad)
+            return;
+
+        if (notepad.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        recycleRepository.JPA.deleteByNotepad(notepad);
+        notepadRepository.JPA.delete(notepad);
+    }
+
+    /**
+     * (标记)删除原来的数据, 并在回收站中添加记录
+     *
+     * @param userId 用户ID
+     * @param id     记事本ID
+     */
+    private void deleteOrigin(int userId, int id) {
         Notepad notepad = notepadRepository.JPA.findById(id);
         if (null == notepad)
             return;

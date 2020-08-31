@@ -28,12 +28,12 @@ public class Recycle {
     @JoinColumn
     private Notepad notepad;
 
-    /**
-     * 目录
-     */
-    @OneToOne
-    @JoinColumn
-    private Directory directory;
+//    /**
+//     * 目录
+//     */
+//    @OneToOne
+//    @JoinColumn
+//    private Directory directory;
 
     /**
      * 创建时间
@@ -45,8 +45,8 @@ public class Recycle {
         this.createTime = new Date();
     }
 
-    public Recycle(Directory dir) {
-        this.directory = dir;
-        this.createTime = new Date();
-    }
+//    public Recycle(Directory dir) {
+//        this.directory = dir;
+//        this.createTime = new Date();
+//    }
 }

@@ -65,8 +65,9 @@ public interface NotepadService {
     /**
      * 删除指定记事本
      *
-     * @param userId 当前用户ID
-     * @param id     记事本ID
+     * @param userId  当前用户ID
+     * @param id      记事本ID
+     * @param recycle true-操作回收站, false-操作原数据
      */
-    void deleteById(int userId, int id);
+    void deleteById(int userId, int id, boolean recycle);
 }

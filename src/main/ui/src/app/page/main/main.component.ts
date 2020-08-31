@@ -26,6 +26,7 @@ import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
 import {fromEvent, of} from 'rxjs';
 import {debounceTime, distinctUntilChanged, pluck, switchMap} from 'rxjs/operators';
 import {Result} from '../../model/result/Result';
+import {Recycle} from "../../model/entity/Recycle";
 
 declare var editormd: any;
 
@@ -52,6 +53,9 @@ class LeftMenu {
   // 点击菜单后是否保留痕迹? 激活active样式
   // 默认 false
   trail?: boolean;
+
+  // 按钮关键字
+  type: 'LATELY' | 'MINE_FOLDER' | 'SHARED_TO_ME' | 'MINE_SHARED' | 'RECYCLE' | 'EXIT';
 }
 
 @Component({
@@ -64,12 +68,12 @@ export class MainComponent implements OnInit {
 
   // 最左侧滑动菜单
   leftMenus: Array<LeftMenu> = [
-    {nzType: 'snippets', text: '最近文档', trail: true, click: () => this.latelyNotepad()},
-    {nzType: 'folder', text: '我的文件夹', trail: true, click: () => this.setParent(Directory.ROOT)},
-    {nzType: 'deployment-unit', text: '与我分享', trail: true},
-    {nzType: 'share-alt', text: '我的分享', trail: true},
-    {nzType: 'delete', text: '回收站', trail: true},
-    {nzType: 'logout', text: '退出', click: () => this.exitApp()}
+    {nzType: 'snippets', text: '最近文档', trail: true, click: () => this.latelyNotepad(), type: 'LATELY'},
+    {nzType: 'folder', text: '我的文件夹', trail: true, click: () => this.setParent(Directory.ROOT), type: 'MINE_FOLDER'},
+    {nzType: 'deployment-unit', text: '与我分享', trail: true, type: 'SHARED_TO_ME'},
+    {nzType: 'share-alt', text: '我的分享', trail: true, type: 'MINE_SHARED'},
+    {nzType: 'delete', text: '回收站', trail: true, click: () => this.listRecycles(), type: 'RECYCLE'},
+    {nzType: 'logout', text: '退出', click: () => this.exitApp(), type: 'EXIT'}
   ];
 
   // 当前激活的左侧菜单
@@ -722,11 +726,31 @@ export class MainComponent implements OnInit {
     this.isLoading = true;
     Debugger
       .simulate<Result>({flag: true})
-      .post(this.http, `/notepad/del/${this.contextNotepad.id}`)
+      .post(this.http, `/notepad/del/${this.contextNotepad.id}`, {recycle: 'RECYCLE' === this.activeLeftMenu.type})
       .subscribe(handleResult2({
         showSuccess: true,
         notify: this.notify,
         onOk: () => this.reloadDirsAndNotepads(),
+        final: () => this.isLoading = false
+      }));
+  }
+
+  // 获取回收站中的文章列表
+  private listRecycles() {
+    this.isLoading = true;
+    this.dirs = [];
+    this.notepads = [];
+    Debugger
+      .simulate<Result>({
+        flag: true,
+        data: <Recycle[]>[
+          {id: 1, notepad: {id: 100, title: 'del-1', content: 'del-1-content', lastModified: new Date()}}
+        ]
+      })
+      .post(this.http, `/recycle/list`)
+      .subscribe(handleResult2({
+        notify: this.notify,
+        onOk: ({data}) => this.setNotepads(extendPropsA(data, 'notepad')),
         final: () => this.isLoading = false
       }));
   }
