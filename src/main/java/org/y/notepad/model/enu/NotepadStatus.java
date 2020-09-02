@@ -15,10 +15,10 @@ public enum NotepadStatus {
      */
     RECYCLE,
 
-    /**
-     * 已删除
-     * TODO 可以把该状态的数据转移到归档数据库中
-     */
-    REMOVED
+    // /**
+    //  * 已删除
+    //  * TODO 可以把该状态的数据转移到归档数据库中
+    //  */
+    // REMOVED
 
 }

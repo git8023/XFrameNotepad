@@ -12,11 +12,12 @@ import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.model.enu.NotepadStatus;
 import org.y.notepad.model.enu.NotepadType;
 import org.y.notepad.repository.DirectoryRepository;
-import org.y.notepad.repository.RecycleRepository;
 import org.y.notepad.repository.NotepadRepository;
+import org.y.notepad.repository.RecycleRepository;
 import org.y.notepad.service.NotepadService;
 import org.y.notepad.service.UserService;
 import org.y.notepad.util.CollectionUtil;
+import org.y.notepad.util.Constants;
 
 import java.util.Date;
 import java.util.List;
@@ -65,6 +66,7 @@ public class NotepadServiceImpl implements NotepadService {
         notepad.setLastModified(now);
         notepad.setCreator(creator);
         notepad.setDir(dir);
+        notepad.setId(0);
         return notepadRepository.JPA.save(notepad);
     }
 
@@ -81,11 +83,11 @@ public class NotepadServiceImpl implements NotepadService {
         int id = notepad.getId();
         Notepad old = notepadRepository.JPA.findById(id);
         if (null == old)
-            ErrorCode.DENIED_OPERATION.breakOff("非法调用, 记事本数据无效!");
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
 
         User user = notepad.getCreator();
         if (!Objects.equals(user, old.getCreator()))
-            ErrorCode.DENIED_OPERATION.breakOff("非法调用, 不允许修改他人数据!");
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
 
         old.setTitle(notepad.getTitle());
         String content = notepad.getContent();
@@ -103,16 +105,17 @@ public class NotepadServiceImpl implements NotepadService {
             return false;
 
         if (notepad.getCreator().getId() != userId)
-            ErrorCode.ILLEGAL_OPERATION.breakOff();
+            ErrorCode.DENIED_OPERATION.breakOff();
 
-        return true;
+        Recycle recycle = recycleRepository.JPA.findByNotepad(notepad);
+        return (null == recycle);
     }
 
     @Override
     public Directory moveToDir(int id, int dirId, int userId) {
         Notepad notepad = notepadRepository.JPA.findById(id);
         if (notepad.getCreator().getId() != userId)
-            ErrorCode.ILLEGAL_OPERATION.breakOff();
+            ErrorCode.DENIED_OPERATION.breakOff();
 
         // 记事本在根目录下
         // 并且目标目录也是根目录
@@ -141,38 +144,7 @@ public class NotepadServiceImpl implements NotepadService {
 
     @Transactional
     @Override
-    public void deleteById(int userId, int id, boolean recycle) {
-        if (recycle)
-            deleteRecycle(userId, id);
-        else
-            deleteOrigin(userId, id);
-    }
-
-    /**
-     * 物理删除记事本数据和回收站记录
-     *
-     * @param userId 用户ID
-     * @param id     记事本ID
-     */
-    private void deleteRecycle(int userId, int id) {
-        Notepad notepad = notepadRepository.JPA.findById(id);
-        if (null == notepad)
-            return;
-
-        if (notepad.getCreator().getId() != userId)
-            ErrorCode.ILLEGAL_OPERATION.breakOff();
-
-        recycleRepository.JPA.deleteByNotepad(notepad);
-        notepadRepository.JPA.delete(notepad);
-    }
-
-    /**
-     * (标记)删除原来的数据, 并在回收站中添加记录
-     *
-     * @param userId 用户ID
-     * @param id     记事本ID
-     */
-    private void deleteOrigin(int userId, int id) {
+    public void deleteById(int userId, int id) {
         Notepad notepad = notepadRepository.JPA.findById(id);
         if (null == notepad)
             return;
@@ -184,4 +156,47 @@ public class NotepadServiceImpl implements NotepadService {
         notepadRepository.JPA.save(notepad);
         recycleRepository.JPA.save(new Recycle(notepad));
     }
+
+    @Override
+    public List<Recycle> listRecycles(int userId) {
+        return recycleRepository.MAPPER.selectAll(userId);
+    }
+
+    /**
+     * 物理删除记事本数据和回收站记录
+     *
+     * @param userId 用户ID
+     * @param id     记事本ID
+     */
+    @Transactional
+    @Override
+    public void deleteRecycle(int userId, int id) {
+        Notepad notepad = notepadRepository.JPA.findById(id);
+        if (null == notepad)
+            return;
+
+        if (notepad.getCreator().getId() != userId)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        recycleRepository.JPA.deleteByNotepad(notepad);
+        notepadRepository.JPA.delete(notepad);
+    }
+
+    @Transactional
+    @Override
+    public void restore(int id) {
+        User user = Constants.USER.get();
+        Recycle recycle = recycleRepository.JPA.findByNotepad(new Notepad(id));
+        if (null == recycle)
+            ErrorCode.ILLEGAL_OPERATION.breakOff();
+
+        Notepad notepad = recycle.getNotepad();
+        if (!Objects.equals(notepad.getCreator(), user))
+            ErrorCode.DENIED_OPERATION.breakOff();
+
+        notepad.setStatus(NotepadStatus.NORMAL);
+        notepadRepository.JPA.save(notepad);
+        recycleRepository.JPA.delete(recycle);
+    }
+
 }

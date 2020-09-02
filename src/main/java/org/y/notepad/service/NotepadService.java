@@ -2,6 +2,7 @@ package org.y.notepad.service;
 
 import org.y.notepad.model.entity.Directory;
 import org.y.notepad.model.entity.Notepad;
+import org.y.notepad.model.entity.Recycle;
 
 import java.util.List;
 
@@ -65,9 +66,31 @@ public interface NotepadService {
     /**
      * 删除指定记事本
      *
-     * @param userId  当前用户ID
-     * @param id      记事本ID
-     * @param recycle true-操作回收站, false-操作原数据
+     * @param userId 当前用户ID
+     * @param id     记事本ID
      */
-    void deleteById(int userId, int id, boolean recycle);
+    void deleteById(int userId, int id);
+
+    /**
+     * 获取回收站中的文章列表
+     *
+     * @param userId 当前用户ID
+     * @return 回收站列表
+     */
+    List<Recycle> listRecycles(int userId);
+
+    /**
+     * 删除回收站中指定记事本
+     *
+     * @param userId 当前用户ID
+     * @param id     记事本ID
+     */
+    void deleteRecycle(int userId, int id);
+
+    /**
+     * 回收站中记事本还原
+     *
+     * @param id 记事本ID
+     */
+    void restore(int id);
 }

@@ -1,5 +1,5 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {EditorConfig} from "../../cfg/editor-config";
+import {EditorConfig, initPasteDragImg} from "../../cfg/editor-config";
 import {
   catchErr,
   clone,
@@ -7,7 +7,7 @@ import {
   dateFmt,
   Debugger,
   eachA,
-  extendPropsA,
+  extendPropsA, findA,
   groupA,
   handleResult2,
   post,
@@ -16,10 +16,16 @@ import {
   validNgForm
 } from '../../util/utils';
 import {HttpClient} from '@angular/common/http';
-import {NzContextMenuService, NzDropdownMenuComponent, NzModalService, NzNotificationService} from 'ng-zorro-antd';
+import {
+  NzContextMenuService,
+  NzDropdownMenuComponent,
+  NzMessageService,
+  NzModalService,
+  NzNotificationService
+} from 'ng-zorro-antd';
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Directory} from "../../model/entity/Directory";
-import {EmitType, XFrames2} from "../../util/XFrames2";
+import {EmitType, XFrames2} from "../../util/Xframes2";
 import {Notepad} from '../../model/entity/Notepad';
 import {isFunction, isNullOrUndefined} from 'util';
 import {isNotNullOrUndefined} from 'codelyzer/util/isNotNullOrUndefined';
@@ -56,6 +62,9 @@ class LeftMenu {
 
   // 按钮关键字
   type: 'LATELY' | 'MINE_FOLDER' | 'SHARED_TO_ME' | 'MINE_SHARED' | 'RECYCLE' | 'EXIT';
+
+  // 删除文件特殊控制
+  deleteNotepad?: (notepad: Notepad) => void
 }
 
 @Component({
@@ -68,11 +77,79 @@ export class MainComponent implements OnInit {
 
   // 最左侧滑动菜单
   leftMenus: Array<LeftMenu> = [
-    {nzType: 'snippets', text: '最近文档', trail: true, click: () => this.latelyNotepad(), type: 'LATELY'},
-    {nzType: 'folder', text: '我的文件夹', trail: true, click: () => this.setParent(Directory.ROOT), type: 'MINE_FOLDER'},
-    {nzType: 'deployment-unit', text: '与我分享', trail: true, type: 'SHARED_TO_ME'},
-    {nzType: 'share-alt', text: '我的分享', trail: true, type: 'MINE_SHARED'},
-    {nzType: 'delete', text: '回收站', trail: true, click: () => this.listRecycles(), type: 'RECYCLE'},
+    {
+      nzType: 'snippets',
+      text: '最近文档',
+      trail: true,
+      click: () => this.latelyNotepad(),
+      type: 'LATELY',
+      deleteNotepad: notepad => {
+        this.isLoading = true;
+        Debugger
+          .simulate<Result>({flag: true})
+          .post(this.http, `/notepad/del/${notepad.id}`)
+          .subscribe(handleResult2({
+            showSuccess: true,
+            notify: this.notify,
+            onOk: () => {
+              this.latelyNotepad();
+              this.checkOpenedNotepadExist();
+            },
+            final: () => {
+              this.isLoading = false;
+              this.closeContextMenu();
+            }
+          }));
+      }
+    },
+    {
+      nzType: 'folder',
+      text: '我的文件夹',
+      trail: true,
+      click: () => this.setParent(Directory.ROOT),
+      type: 'MINE_FOLDER',
+      deleteNotepad: notepad => {
+        this.isLoading = true;
+        Debugger
+          .simulate<Result>({flag: true})
+          .post(this.http, `/notepad/del/${notepad.id}`)
+          .subscribe(handleResult2({
+            showSuccess: true,
+            notify: this.notify,
+            onOk: () => {
+              this.reloadDirsAndNotepads();
+              this.checkOpenedNotepadExist();
+            },
+            final: () => {
+              this.isLoading = false;
+              this.closeContextMenu();
+            }
+          }));
+      }
+    },
+    // {nzType: 'deployment-unit', text: '与我分享', trail: true, type: 'SHARED_TO_ME'},
+    // {nzType: 'share-alt', text: '我的分享', trail: true, type: 'MINE_SHARED'},
+    {
+      nzType: 'delete',
+      text: '回收站',
+      trail: true,
+      click: () => this.listRecycles(),
+      type: 'RECYCLE',
+      deleteNotepad: notepad => {
+        this.isLoading = true;
+        Debugger
+          .simulate<Result>({flag: true})
+          .post(this.http, `/notepad/recycleDel/${notepad.id}`)
+          .subscribe(handleResult2({
+            notify: this.notify,
+            onOk: () => this.listRecycles(),
+            final: () => {
+              this.isLoading = false;
+              this.closeContextMenu();
+            }
+          }));
+      }
+    },
     {nzType: 'logout', text: '退出', click: () => this.exitApp(), type: 'EXIT'}
   ];
 
@@ -92,14 +169,10 @@ export class MainComponent implements OnInit {
   addDirForm: FormGroup;
 
   // 目录列表
-  dirs: Array<Directory> = [
-    {id: 1, name: '目录1'}
-  ];
+  dirs: Array<Directory> = [];
 
   // 文件列表
-  notepads: Array<Notepad> = [
-    {id: 1, content: '123<b>粗体</b>哈哈', title: '的房间昆德拉解放开绿灯撒'}
-  ];
+  notepads: Array<Notepad> = [];
 
   // 当前目录
   currentDir: Directory = Directory.ROOT;
@@ -127,7 +200,7 @@ export class MainComponent implements OnInit {
   dirNameValidator = regexpValidator({regex: /^[a-zA-Z\u4e00-\u9fa5_$0-9]{2,10}$/, truth: false});
 
   // 激活右键菜单的记事本
-  private contextNotepad: Notepad;
+  contextNotepad: Notepad;
 
   // 记事本移动到其他目录弹出框
   // true-显示
@@ -148,6 +221,7 @@ export class MainComponent implements OnInit {
     private notify: NzNotificationService,
     private modal: NzModalService,
     private fb: FormBuilder,
+    private msgService: NzMessageService,
     private nzContextMenuService: NzContextMenuService
   ) {
   }
@@ -203,6 +277,7 @@ export class MainComponent implements OnInit {
       });
   }
 
+  // 退出
   exist() {
     XFrames2.emitType(EmitType.EXIT);
   }
@@ -255,9 +330,7 @@ export class MainComponent implements OnInit {
   // 初始化
   private init() {
     this.resetEditorMd();
-
-    // 加载子目录
-    Debugger.prod(() => this.latelyNotepad());
+    this.latelyNotepad();
   }
 
   // 重置 editormd 插件
@@ -269,11 +342,14 @@ export class MainComponent implements OnInit {
       this.conf.onchange = () => {
         console.log(this.editor.getMarkdown());
       };
+      this.conf.onload = () => initPasteDragImg(this.editor);
+
       if (!this.editor)
         this.editor = editormd('mdEditor', this.conf);
       else
         this.editor.setMarkdown(this.conf.markdown);
-      setTimeout(() => this.changeEditorModal(ONLY_PREVIEW), 1000);
+      this.changeEditorModal(ONLY_EDIT);
+      setTimeout(() => this.changeEditorModal(ONLY_PREVIEW), 500);
     }, 0);
   }
 
@@ -302,7 +378,9 @@ export class MainComponent implements OnInit {
     this.isLoading = true;
     new Counter()
       .fire(timer => {
-        post(this.http, `/dir/detail/${this.currentDir.id}`)
+        Debugger
+          .simulate<Result>({flag: true, data: Directory.ROOT})
+          .post(this.http, `/dir/detail/${this.currentDir.id}`)
           .subscribe(handleResult2({
             notify: this.notify,
             onOk: ({data}) => this.currentDir = data || Directory.ROOT,
@@ -313,20 +391,24 @@ export class MainComponent implements OnInit {
           }));
       })
       .fire(timer => {
-        post(this.http, `/dir/dirs/${this.currentDir.id}`, null, ...catchErr())
+        Debugger
+          .simulate<Result>({flag: true, data: <Directory[]>[{id: 1, name: 'Dir-1', path: '/Dir1'}]})
+          .post(this.http, `/dir/dirs/${this.currentDir.id}`)
           .subscribe(handleResult2({
             notify: this.notify,
             onOk: ({data}) => this.dirs = data || [],
             final: timer
-          }))
+          }));
       })
       .fire(timer => {
-        post(this.http, `/notepad/list/${this.currentDir.id}`, null, ...catchErr())
+        Debugger
+          .simulate({flag: true, data: <Notepad[]>[{id: 1, title: 'Notepad-1', content: '模拟内容'}]})
+          .post(this.http, `/notepad/list/${this.currentDir.id}`)
           .subscribe(handleResult2({
             notify: this.notify,
             onOk: ({data}) => this.setNotepads(data),
             final: timer
-          }))
+          }));
       })
       .done(() => this.isLoading = false);
   }
@@ -365,7 +447,7 @@ export class MainComponent implements OnInit {
   addFile() {
     this.isLoading = true;
     let dirId = (this.contextDir || this.currentDir).id;
-    post(this.http, `/notepad/newBlank/${dirId}`, null, ...catchErr())
+    post(this.http, `/notepad/newBlank/${dirId}`)
       .subscribe(handleResult2({
         notify: this.notify,
         onOk: ret => this.setParent(ret.data.dir),
@@ -475,7 +557,9 @@ export class MainComponent implements OnInit {
       });
     })
       .then(() => new Promise((resolve, reject) => {
-        post(this.http, `/dir/del/${this.contextDir.id}`, {force: false})
+        Debugger
+          .simulate<Result>({flag: true, data: false})
+          .post(this.http, `/dir/del/${this.contextDir.id}`, {force: false})
           .subscribe(handleResult2({
             notify: this.notify,
             onOk: ({data}) => {
@@ -487,14 +571,12 @@ export class MainComponent implements OnInit {
             final: ({flag}) => !flag && reject()
           }));
       }))
-
-      // 要删除的目录包含子目录或者文件
       .then(emptyDir => {
         if (!emptyDir) {
           return new Promise((resolve, reject) => {
             this.modal.confirm({
               nzTitle: '警告',
-              nzContent: `指定目录<b>${this.contextDir.name}</b>包含子目录或文件, 是否继续?`,
+              nzContent: `指定目录<b>${this.contextDir.name}</b>包含子目录或文件, 是否继续? <br><span class="red">[注意]:</span> 该操作不可逆`,
               nzOkText: '强制删除',
               nzCancelText: '取消',
               nzOnOk: () => resolve(),
@@ -504,7 +586,9 @@ export class MainComponent implements OnInit {
         }
       })
       .then(() => new Promise(resolve => {
-        post(this.http, `/dir/del/${this.contextDir.id}`, {force: true})
+        Debugger
+          .simulate<Result>({flag: true})
+          .post(this.http, `/dir/del/${this.contextDir.id}`, {force: true})
           .subscribe(handleResult2({
             notify: this.notify,
             final: () => resolve()
@@ -538,10 +622,6 @@ export class MainComponent implements OnInit {
     this.contextNotepad = notepad;
     this.showContextMenu = true;
     this.nzContextMenuService.create($event, menu);
-  }
-
-  // TODO 分享
-  shareNotepad() {
   }
 
   // 记事本移动到其他目录
@@ -723,16 +803,10 @@ export class MainComponent implements OnInit {
 
   // 删除记事本
   deleteNotepad() {
-    this.isLoading = true;
-    Debugger
-      .simulate<Result>({flag: true})
-      .post(this.http, `/notepad/del/${this.contextNotepad.id}`, {recycle: 'RECYCLE' === this.activeLeftMenu.type})
-      .subscribe(handleResult2({
-        showSuccess: true,
-        notify: this.notify,
-        onOk: () => this.reloadDirsAndNotepads(),
-        final: () => this.isLoading = false
-      }));
+    if (isFunction(this.activeLeftMenu.deleteNotepad))
+      this.activeLeftMenu.deleteNotepad(this.contextNotepad);
+    else
+      this.msgService.warning("不支持的操作");
   }
 
   // 获取回收站中的文章列表
@@ -743,14 +817,37 @@ export class MainComponent implements OnInit {
     Debugger
       .simulate<Result>({
         flag: true,
-        data: <Recycle[]>[
-          {id: 1, notepad: {id: 100, title: 'del-1', content: 'del-1-content', lastModified: new Date()}}
-        ]
+        data: <Recycle[]>[{
+          id: 1,
+          notepad: {id: 100, title: 'del-1', content: 'del-1-content', lastModified: new Date()}
+        }]
       })
-      .post(this.http, `/recycle/list`)
+      .post(this.http, `/notepad/recycle`)
       .subscribe(handleResult2({
         notify: this.notify,
         onOk: ({data}) => this.setNotepads(extendPropsA(data, 'notepad')),
+        final: () => {
+          this.isLoading = false;
+          this.closeContextMenu();
+        }
+      }));
+  }
+
+  // 记事本上下文菜单(更多)
+  notepadContextMoreMenus() {
+    return findA(['MINE_FOLDER', 'LATELY'], this.activeLeftMenu.type);
+  }
+
+  // 还原回收站
+  restore() {
+    this.isLoading = true;
+    Debugger
+      .simulate()
+      .post(this.http, `/notepad/restore/${this.contextNotepad.id}`)
+      .subscribe(handleResult2({
+        notify: this.notify,
+        showSuccess: true,
+        onOk: () => this.listRecycles(),
         final: () => this.isLoading = false
       }));
   }

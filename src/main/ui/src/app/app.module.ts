@@ -10,6 +10,11 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {registerLocaleData} from '@angular/common';
 import zh from '@angular/common/locales/zh';
 import {MainComponent} from './page/main/main.component';
+import {DateFmtPipe} from './pipe/date-fmt.pipe';
+import {DefValPipe} from './pipe/def-val.pipe';
+import {InsidePipe} from './pipe/inside.pipe';
+import {JsonIndexPipe} from './pipe/json-index.pipe';
+import {StringFormatPipe} from './pipe/string-format.pipe';
 
 registerLocaleData(zh);
 
@@ -17,6 +22,14 @@ registerLocaleData(zh);
   declarations: [
     AppComponent,
     MainComponent,
+
+    //<editor-fold desc="pipes">
+    DateFmtPipe,
+    DefValPipe,
+    InsidePipe,
+    JsonIndexPipe,
+    StringFormatPipe,
+    //</editor-fold>
   ],
   imports: [
     BrowserModule,

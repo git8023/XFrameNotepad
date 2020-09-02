@@ -3,7 +3,6 @@ package org.y.notepad.web.controller;
 import lombok.Lombok;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
@@ -21,8 +20,11 @@ public class XFrameController {
     @Value("${logging.file.path}")
     private String logFileDir;
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
+
+    public XFrameController(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * 停止当前程序运行

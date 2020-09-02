@@ -52,7 +52,6 @@
         <span class="text flex-1">{{dir.name}}</span>
         <span class="date file-count">0</span>
       </div>
-
       <!--文件列表-->
       <div class="path flex-h flex-center" *ngFor="let notepad of notepads"
            (click)="openNotepad(notepad)" [class.opened]="openedNotepad == notepad"
@@ -62,7 +61,15 @@
         <span class="text flex-1">{{notepad.title}}</span>
         <span class="date">{{notepad.lastModified}}</span>
       </div>
-
+      <!--没有数据-->
+      <nz-empty
+        *ngIf="0==dirs.length && 0==notepads.length"
+        [nzNotFoundImage]="'https://gw.alipayobjects.com/mdn/miniapp_social/afts/img/A*pevERLJC9v0AAAAAAAAAAABjAQAAAQ/original'      "
+        [nzNotFoundFooter]="footerTpl">
+        <ng-template #footerTpl>
+          <a *ngIf="activeLeftMenu.type == 'MINE_FOLDER'" href="javascript:void(0)" (click)="addFile()">创建记事本</a>
+        </ng-template>
+      </nz-empty>
     </div>
   </div>
 
@@ -80,14 +87,14 @@
     </div>
 
     <div class="operation flex-v">
-      <i nz-icon nzType="sync" nzTheme="outline"
+      <i nz-icon nzType="sync" nzTheme="outline" *ngIf="-1 != openedNotepad.id"
          nz-tooltip nzTooltipTitle="手动保存" nzTooltipPlacement="left" (click)="saveNotepad()"></i>
 
       <i nz-icon nzType="profile" nzTheme="outline"
          nz-tooltip nzTooltipTitle="模式切换" nzTooltipPlacement="left" (click)="changeEditorModal()"></i>
 
-      <i nz-icon nzType="share-alt" nzTheme="outline"
-         nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>
+      <!--<i nz-icon nzType="share-alt" nzTheme="outline"-->
+      <!--   nz-tooltip nzTooltipTitle="分享" nzTooltipPlacement="left"></i>-->
     </div>
   </div>
 </div>
@@ -106,10 +113,15 @@
 <!--记事本右键菜单-->
 <nz-dropdown-menu #notepadContextMenus>
   <ul nz-menu class="add-menu-box">
-    <li nz-menu-item (click)="notepadMoveToDir()"><i nz-icon nzType="database" nzTheme="outline"></i>移动到</li>
-    <li nz-menu-item (click)="shareNotepad()"><i nz-icon nzType="share-alt" nzTheme="outline"></i>分享</li>
+    <ng-container *ngIf="notepadContextMoreMenus()">
+      <li nz-menu-item (click)="notepadMoveToDir()"><i nz-icon nzType="database" nzTheme="outline"></i>移动到</li>
+    </ng-container>
+    <ng-container *ngIf="activeLeftMenu.type == 'RECYCLE'">
+      <li nz-menu-item (click)="restore()"><i nz-icon nzType="undo" nzTheme="outline"></i>还原</li>
+    </ng-container>
     <li nz-menu-divider></li>
-    <li nz-menu-item (click)="deleteNotepad()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除</li>
+    <li nz-menu-item (click)="deleteNotepad()" class="color-red"><i nz-icon nzType="delete" nzTheme="outline"></i>删除
+    </li>
   </ul>
 </nz-dropdown-menu>
 

@@ -1130,4 +1130,15 @@ export class Counter {
 
 }
 
+function G() {
+  return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
+}
+
+/**
+ * 生成GUID码
+ */
+export function guid(): string {
+  return (G() + G() + "-" + G() + "-" + G() + "-" + G() + "-" + G() + G() + G()).toUpperCase();
+}
+
 //</editor-fold>

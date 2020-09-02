@@ -101,43 +101,56 @@
         </repository>
     </repositories>
 
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <jvmArguments>
+                        -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005
+                    </jvmArguments>
+
+                    <mainClass>org.y.notepad.NotepadApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/*.properties</include>
-                    <include>**/*.xml</include>
-                    <include>**/*.yml</include>
-                </includes>
-                <excludes>
-                    <exclude>static/**</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <includes>
-                    <include>static/**</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>static/**</exclude>
-                </excludes>
-            </resource>
-        </resources>
+        <!--        <resources>-->
+        <!--            <resource>-->
+        <!--                <directory>src/main/resources</directory>-->
+        <!--                <filtering>true</filtering>-->
+        <!--                <includes>-->
+        <!--                    <include>**/*.properties</include>-->
+        <!--                    <include>**/*.xml</include>-->
+        <!--                    <include>**/*.yml</include>-->
+        <!--                </includes>-->
+        <!--                <excludes>-->
+        <!--                    <exclude>static/**</exclude>-->
+        <!--                </excludes>-->
+        <!--            </resource>-->
+        <!--            <resource>-->
+        <!--                <directory>src/main/resources</directory>-->
+        <!--                <filtering>false</filtering>-->
+        <!--                <includes>-->
+        <!--                    <include>static/**</include>-->
+        <!--                </includes>-->
+        <!--            </resource>-->
+        <!--            <resource>-->
+        <!--                <directory>src/main/resources</directory>-->
+        <!--                <filtering>true</filtering>-->
+        <!--                <excludes>-->
+        <!--                    <exclude>static/**</exclude>-->
+        <!--                </excludes>-->
+        <!--            </resource>-->
+        <!--        </resources>-->
     </build>
 
 </project>

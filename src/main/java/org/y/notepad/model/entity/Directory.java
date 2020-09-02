@@ -16,7 +16,7 @@ import java.util.Date;
 public class Directory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private int id;
 
     /**

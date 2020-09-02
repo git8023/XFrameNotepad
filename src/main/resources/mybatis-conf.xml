@@ -9,5 +9,7 @@
     <typeHandlers>
         <typeHandler handler="org.apache.ibatis.type.EnumOrdinalTypeHandler"
                      javaType="org.y.notepad.model.enu.NotepadType"/>
+        <typeHandler handler="org.apache.ibatis.type.EnumOrdinalTypeHandler"
+                     javaType="org.y.notepad.model.enu.NotepadStatus"/>
     </typeHandlers>
 </configuration>

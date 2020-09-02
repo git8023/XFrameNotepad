@@ -79,3 +79,6 @@ logging:
 # 最近记事本条数
 notepad:
   lately-count: 20
+
+upload:
+  upload-dir: /xframe/app/notepad/upload/

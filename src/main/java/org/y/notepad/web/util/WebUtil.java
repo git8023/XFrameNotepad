@@ -5,17 +5,18 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
+import org.y.notepad.model.enu.ErrorCode;
 import org.y.notepad.util.Constants;
+import org.y.notepad.util.DateUtil;
+import org.y.notepad.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.Objects;
 
 @Slf4j
@@ -165,6 +166,30 @@ public class WebUtil {
     }
 
     /**
+     * 直接写出文件
+     *
+     * @param img 文件对象
+     */
+    public static void writeImage(File img) {
+        OutputStream os = WebUtil.getResponseOutputStream();
+
+        if (null == img) {
+            try {
+                os.write(new byte[]{});
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
+        try (InputStream in = new FileInputStream(img)) {
+            IOUtils.copy(in, os);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * 重定向到指定地址
      *
      * @param url 目标地址
@@ -188,6 +213,33 @@ public class WebUtil {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 设置验证码
+     *
+     * @param code           验证码
+     * @param expiredMinutes 有效期(分钟)
+     */
+    public static void setCheckCode(String code, int expiredMinutes) {
+        WebUtil.setSession(Constants.KEY_OF_CHECK_CODE, code);
+        Date expired = DateUtil.addMinutes(new Date(), expiredMinutes);
+        WebUtil.setSession(Constants.KEY_OF_CHECK_CODE_EXPIRED, expired);
+    }
+
+    /**
+     * 检测验证验证码
+     *
+     * @param code 验证码
+     */
+    public static void checkCode(String code) {
+        String existCode = WebUtil.getSession(Constants.KEY_OF_CHECK_CODE);
+        if (!StringUtil.equals(existCode, code))
+            ErrorCode.CHECK_CODE_INVALID.breakOff();
+
+        Date expired = WebUtil.getSession(Constants.KEY_OF_CHECK_CODE_EXPIRED);
+        if (new Date().after(expired))
+            ErrorCode.CHECK_CODE_EXPIRED.breakOff();
     }
 
     /**

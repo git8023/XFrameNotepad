@@ -15,5 +15,12 @@ public interface RecycleJpa extends JpaRepository<Recycle, Integer> {
      */
     void deleteByNotepad(Notepad notepad);
 
+    /**
+     * 指定记事本查询回收站信息
+     *
+     * @param notepad 记事本
+     * @return 回收站信息
+     */
+    Recycle findByNotepad(Notepad notepad);
 }
 

@@ -19,7 +19,7 @@ public class User {
      * 当前应用中的用户自增ID
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private int id;
 
     /**

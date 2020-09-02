@@ -1,5 +1,6 @@
 package org.y.notepad.model.enu;
 
+
 import org.y.notepad.exception.BusinessException;
 
 public enum ErrorCode {
@@ -15,9 +16,12 @@ public enum ErrorCode {
     DENIED_OPERATION("操作被拒绝"),
     ILLEGAL_OPERATION("非法操作"),
     ILLEGAL_PARAMETER("参数无效"),
-    SYSTEM_INITIALIZING("系统初始化中");
+    SYSTEM_INITIALIZING("系统初始化中"),
+    MAIL_SEND_FAILURE("邮件发送失败"),
+    CHECK_CODE_INVALID("验证码无效"),
+    CHECK_CODE_EXPIRED("验证码已过期");
 
-    public final String message;
+    private String message;
 
     ErrorCode(String message) {
         this.message = message;
@@ -25,6 +29,10 @@ public enum ErrorCode {
 
     public String getMessage() {
         return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     /**

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.y.notepad.model.entity.Directory;
 import org.y.notepad.model.entity.Notepad;
+import org.y.notepad.model.entity.Recycle;
 import org.y.notepad.model.entity.User;
 import org.y.notepad.model.result.Result;
 import org.y.notepad.service.NotepadService;
@@ -107,14 +108,49 @@ public class NotepadController {
     /**
      * 删除记事本
      *
-     * @param id      记事本ID
-     * @param recycle true-操作记事本回收站, false-操作记事本
+     * @param id 记事本ID
      */
     @RequestMapping("/del/{id}")
-    public Result delete(@PathVariable int id, boolean recycle) {
+    public Result delete(@PathVariable int id) {
         User user = WebUtil.getUser();
         int userId = user.getId();
-        notepadService.deleteById(userId, id, recycle);
+        notepadService.deleteById(userId, id);
         return Result.success();
     }
+
+    /**
+     * 获取回收站文章列表
+     */
+    @RequestMapping("/recycle")
+    public Result recycle() {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        List<Recycle> recs = notepadService.listRecycles(userId);
+        return Result.data(recs);
+    }
+
+    /**
+     * 删除回收站中指定记事本
+     *
+     * @param id 记事本ID
+     */
+    @RequestMapping("/recycleDel/{id}")
+    public Result recycleDelete(@PathVariable int id) {
+        User user = WebUtil.getUser();
+        int userId = user.getId();
+        notepadService.deleteRecycle(userId, id);
+        return Result.success();
+    }
+
+    /**
+     * 回收站还原
+     *
+     * @param id 记事本ID
+     */
+    @RequestMapping("/restore/{id}")
+    public Result restore(@PathVariable int id) {
+        notepadService.restore(id);
+        return Result.success();
+    }
+
 }

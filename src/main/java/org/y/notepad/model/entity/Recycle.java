@@ -18,8 +18,8 @@ public class Recycle {
      * 自增ID
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @GeneratedValue
+    private int id;
 
     /**
      * 记事本
